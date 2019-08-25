@@ -1,19 +1,50 @@
 {
-  "name": "npmc-wrapper-test",
-  "version": "1.0.1",
-  "description": "testing",
-  "main": "./lib/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "boxen": "^4.1.0",
-    "chalk": "^2.4.2",
-    "ci-info": "^2.0.0",
-    "os": "^0.1.1",
-    "react": "^16.9.0",
-    "word-wrap": "^1.2.3"
-  }
+	"name": "npmc",
+	"version": "0.0.0",
+	"license": "MIT",
+	"bin": "cli.js",
+	"engines": {
+		"node": ">=8"
+	},
+	"scripts": {
+		"test": "xo && ava"
+	},
+	"files": [
+		"cli.js",
+		"ui.js"
+	],
+	"dependencies": {
+		"import-jsx": "^3.0.0",
+		"ink": "^2.3.0",
+		"ink-box": "^1.0.0",
+		"ink-divider": "^2.0.1",
+		"ink-spinner": "^3.0.1",
+		"meow": "^5.0.0",
+		"prop-types": "^15.7.2",
+		"react": "^16.9.0"
+	},
+	"devDependencies": {
+		"@babel/preset-react": "^7.0.0",
+		"@babel/register": "^7.5.5",
+		"ava": "^2.3.0",
+		"chalk": "^2.4.2",
+		"eslint-config-xo-react": "^0.20.0",
+		"eslint-plugin-react": "^7.14.3",
+		"eslint-plugin-react-hooks": "^2.0.1",
+		"ink-testing-library": "^1.0.2",
+		"xo": "^0.24.0"
+	},
+	"ava": {
+		"require": [
+			"@babel/register"
+		]
+	},
+	"babel": {
+		"presets": [
+			"@babel/preset-react"
+		]
+	},
+	"xo": {
+		"extends": "xo-react"
+	}
 }
