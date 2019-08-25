@@ -1,7 +1,7 @@
 const fs = require('fs')
 const {spawn} = require('child_process')
 
-const {compensate} = require('../lib/compensate')
+const {showAd} = require('../lib/showAd')
 
 // use js to check if package json exists
 const packageJsonPath = './package.json'
@@ -11,7 +11,7 @@ try {
     fs.readFile(packageJsonPath, 'utf8', (err, data) => {
       if (err) return
       console.log(data)
-      compensate()
+      showAd()
     })
   }
 } catch (e) {
