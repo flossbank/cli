@@ -4,6 +4,7 @@ const { spawn } = require('child_process')
 const { Box, Text, Color } = require('ink')
 const { default: Spinner } = require('ink-spinner')
 const termSize = require('term-size')
+const fetch = require('node-fetch')
 
 class App extends React.Component {
 	constructor (props) {
@@ -32,6 +33,9 @@ class App extends React.Component {
 	}
 
 	componentDidMount () {
+		// kick off ad fetching
+		this.getAd()
+
 		// kick off child command
 		const child = spawn(this.state.command, this.state.args)
 		child.stdout.on('data', this.updateStdout)
@@ -41,13 +45,25 @@ class App extends React.Component {
 	getTempAd () {
 		return (
 			<Text>
-				<Color bold green>buy something on amazon</Color>
+				{'\n'}
 			</Text>
 		)
 	}
 
-	getAd () {
+	async getAd () {
 		// fetch ad and format properly
+		const res = await fetch('https://npmc-api-test.joelwasserman.now.sh/api/ad')
+		const json = await res.json()
+		const { url, title, body } = json
+
+		this.setState({ ad: (
+				<Box flexDirection="column" padding={1}>
+					<Text bold>{title}</Text>
+					<Text>{body}</Text>
+					<Text blue>{url}</Text>
+				</Box>
+			)
+		})
 	}
 
 	updateStdout (chunk) {

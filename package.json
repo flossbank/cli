@@ -20,6 +20,7 @@
 		"ink-divider": "^2.0.1",
 		"ink-spinner": "^3.0.1",
 		"meow": "^5.0.0",
+		"node-fetch": "^2.6.0",
 		"prop-types": "^15.7.2",
 		"react": "^16.9.0"
 	},
