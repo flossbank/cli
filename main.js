@@ -3,7 +3,6 @@ const PropTypes = require('prop-types')
 const { spawn } = require('child_process')
 const { Box, Text, Color } = require('ink')
 const { default: Spinner } = require('ink-spinner')
-const termSize = require('term-size')
 const fetch = require('node-fetch')
 
 class App extends React.Component {
@@ -16,20 +15,10 @@ class App extends React.Component {
 			ad: this.getTempAd(),
 			command,
 			args,
-			stdout: [],
-			stderr: []
+			output: []
 		}
 
-		this.maxHeight = termSize().rows
-		this.maxWidth = termSize().columns
-
-		// reserve 20% of term for cmd output; 20% of term for ad output
-		this.maxAdHeight = Math.floor(0.20 * this.maxHeight)
-		this.maxOutput = Math.floor(0.20 * this.maxHeight)
-		this.maxAllOutput = this.maxAdHeight + this.maxOutput
-
-		this.updateStdout = this.updateStdout.bind(this)
-		this.updateStderr = this.updateStderr.bind(this)
+		this.updateOutput = this.updateOutput.bind(this)
 	}
 
 	componentDidMount () {
@@ -38,8 +27,8 @@ class App extends React.Component {
 
 		// kick off child command
 		const child = spawn(this.state.command, this.state.args)
-		child.stdout.on('data', this.updateStdout)
-		child.stderr.on('data', this.updateStderr)
+		child.stdout.on('data', this.updateOutput)
+		child.stderr.on('data', this.updateOutput)
 	}
 
 	getTempAd () {
@@ -66,18 +55,8 @@ class App extends React.Component {
 		})
 	}
 
-	updateStdout (chunk) {
-		const { stdout } = this.state
-		const nextStdout = stdout.slice()
-		nextStdout.unshift(chunk)
-		this.setState({ stdout: nextStdout })
-	}
-
-	updateStderr (chunk) {
-		const { stderr } = this.state
-		const nextStderr = stderr.slice()
-		nextStderr.unshift(chunk)
-		this.setState({ stderr: nextStderr })
+	updateOutput (chunk) {
+		this.setState(({ output }) => ({ output: output.concat(chunk) }))
 	}
 
 	getChildCmd () {
@@ -87,21 +66,20 @@ class App extends React.Component {
 
 	render () {
 		return (
-			<Box paddingY={2} flexDirection="column" height={this.maxAllOutput}>
-				<Box width="100%" height={this.maxAdHeight} justifyContent="center">
+			<Box paddingY={2} flexDirection="column">
+        <Box paddingY={1} width="100%" flexDirection="column">
+					<Text>
+						{this.state.output.length
+							? this.state.output.join('')
+							: <Spinner type="dots" />
+						}
+					</Text>
+				</Box>
+				<Box width="100%" justifyContent="center">
             <Box>
                 {this.state.ad}
             </Box>
         </Box>
-        <Box paddingY={1} width="100%" flexDirection="column">
-					<Text>
-						{this.state.stdout.length
-							? this.state.stdout.slice(0, this.maxOutput).reverse().join('')
-							: <Spinner type="dots" />
-						}
-					</Text>
-					<Text><Color red>{this.state.stderr.join('\n')}</Color></Text>
-				</Box>
     	</Box>
 		)
 	}
