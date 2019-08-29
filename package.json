@@ -22,7 +22,8 @@
 		"meow": "^5.0.0",
 		"node-fetch": "^2.6.0",
 		"prop-types": "^15.7.2",
-		"react": "^16.9.0"
+		"react": "^16.9.0",
+		"word-wrap": "^1.2.3"
 	},
 	"devDependencies": {
 		"@babel/preset-react": "^7.0.0",

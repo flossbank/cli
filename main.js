@@ -1,6 +1,7 @@
 const React = require('react')
 const PropTypes = require('prop-types')
 const { spawn } = require('child_process')
+const wrap = require('./lib/wrap')
 const { Box, Text, Color } = require('ink')
 const { default: Spinner } = require('ink-spinner')
 const fetch = require('node-fetch')
@@ -80,12 +81,14 @@ class App extends React.Component {
 		const topBorderColor = colors[Math.floor(Math.random() * (colors.length - 1))]
 		const bottomBorderColor = colors[Math.floor(Math.random() * (colors.length - 1))]
 
-		const maxBodyWidth = adWidth - 10
-		const bodyLineCount = body.length / maxBodyWidth
+		const bodyPutOnMultipleLines = wrap(body)
+		const splitBody = bodyPutOnMultipleLines.split('\n')
+
+		// const maxBodyWidth = adWidth - 10
+		// const bodyLineCount = body.length / maxBodyWidth
 		const bodyLines = []
-		for (let i = 0; i < bodyLineCount; i++) {
-			const lineText = body.slice(i * maxBodyWidth, (i+1) * maxBodyWidth)
-			bodyLines.push(<Text>{lineText}</Text>)
+		for (let i = 0; i < splitBody.length; i++) {
+			bodyLines.push(<Text>{splitBody[i]}</Text>)
 		}
 
 		this.setState({ ad: (
@@ -97,7 +100,7 @@ class App extends React.Component {
 					<Text bold>{title}</Text>
 					{bodyLines}
 					<Text> </Text>
-					<Text>{url}</Text>
+					<Text underline>{url}</Text>
 					<Color hex={bottomBorderColor}>{bottomBorder}</Color>
 				</Box>
 			)
