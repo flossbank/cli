@@ -26,12 +26,15 @@ class App extends React.Component {
 	componentDidMount () {
 		// kick off ad fetching
 		this.getAd()
-		setInterval(() => this.getAd(), 2000)
+		const adInterval = setInterval(() => this.getAd(), 2000)
 
 		// kick off child command
 		const child = spawn(this.state.command, this.state.args)
 		child.stdout.on('data', this.updateOutput)
 		child.stderr.on('data', this.updateOutput)
+		child.on('close', () => {
+			clearInterval(adInterval)
+		})
 	}
 
 	getTempAd () {
@@ -64,7 +67,7 @@ class App extends React.Component {
 				"url": "https://theteacherfund.com/term"
 			}
 		]
-		let { url, title, body } = messages[Math.floor(Math.random() * 2)]
+		let { url, title, body } = messages[Math.floor(Math.random() * 3)]
 
 		const adWidth = termSize().columns / 2
 		const topBorder = `┌${'─'.repeat(adWidth)}┐`
