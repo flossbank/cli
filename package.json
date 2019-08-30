@@ -14,7 +14,6 @@
 		"ui.js"
 	],
 	"dependencies": {
-		"@material-ui/core": "^4.3.3",
 		"import-jsx": "^3.0.0",
 		"ink": "^2.3.0",
 		"ink-box": "^1.0.0",
