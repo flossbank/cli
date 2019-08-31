@@ -50,35 +50,15 @@ class App extends React.Component {
 
 	async getAd () {
 		// fetch ad and format properly
-		// const res = await fetch('https://npmc-api-test.joelwasserman.now.sh/api/ad')
-		// const json = await res.json()
-		// const { url, title, body } = json
-		const messages = [
-			{ // for testing
-				"title": "LogRocket",
-				"body": "Stop guessing why bugs happen. LogRocket lets you replay what users do on your web app or website, helping you reproduce bugs and fix issues faster.",
-				"url": "https://logrocket.com/term"
-			},
-			{ // for testing
-				"title": "Hello Peter",
-				"body": "Donate to teacherfund and get a free t shirt today!",
-				"url": "https://theteacherfund.com/term"
-			},
-			{ // for testing
-				"title": "Trump sucks",
-				"body": "blahhhhhh!",
-				"url": "https://theteacherfund.com/term"
-			}
-		]
-		let { url, title, body } = messages[Math.floor(Math.random() * 3)]
+		const res = await fetch('http://localhost:3000/api/getAd')
+		const json = await res.json()
+		const { url, title, body } = json
 
 		const adWidth = termSize().columns / 2
 		const topBorder = `┌${'─'.repeat(adWidth)}┐`
 		const bottomBorder = `└${'─'.repeat(adWidth)}┘`
 
-		const topBorderColor = getRandomColor()
-		const bottomBorderColor = getRandomColor()
-
+		const borderColor = getRandomColor()
 		const splitBody = getAdBody(body)
 		const bodyLines = []
 		for (let i = 0; i < splitBody.length; i++) {
@@ -90,12 +70,12 @@ class App extends React.Component {
 					width={adWidth} 
 					alignItems="center"
 					padding={1}>
-					<Color hex={topBorderColor}>{topBorder}</Color>
+					<Color hex={borderColor}>{topBorder}</Color>
 					<Text bold>{title}</Text>
 					{bodyLines}
 					<Text> </Text>
 					<Text underline>{url}</Text>
-					<Color hex={bottomBorderColor}>{bottomBorder}</Color>
+					<Color hex={borderColor}>{bottomBorder}</Color>
 				</Box>
 			)
 		})
