@@ -35,13 +35,14 @@ class App extends React.Component {
 
 		// kick off child command
 		const child = spawn(this.state.command, this.state.args)
-		child.stdout.on('data', this.updateOutput)
+		child.stdout.pipe(process.stdout);
+		// child.stdout.on('data', this.updateOutput)
 		child.stderr.on('data', this.updateOutput)
 		child.on('message', (chunk) => {
 			console.log('message')
 			this.updateMessage(chunk)
 		})
-		// child.on('')
+		child.on('')
 		child.on('close', () => {
 			clearInterval(adInterval)
 		})
