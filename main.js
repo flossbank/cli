@@ -5,6 +5,7 @@ const {
 	getRandomColor, 
 	getAdBody,
 } = require('./lib/adHelpers')
+const testAds = require('./testData/testAds.json')
 const { Box, Text, Color } = require('ink')
 const { default: Spinner } = require('ink-spinner')
 const fetch = require('node-fetch')
@@ -20,7 +21,8 @@ class App extends React.Component {
 			ad: this.getTempAd(),
 			command,
 			args,
-			output: []
+			output: [],
+			message: []
 		}
 
 		this.updateOutput = this.updateOutput.bind(this)
@@ -35,6 +37,11 @@ class App extends React.Component {
 		const child = spawn(this.state.command, this.state.args)
 		child.stdout.on('data', this.updateOutput)
 		child.stderr.on('data', this.updateOutput)
+		child.on('message', (chunk) => {
+			console.log('message')
+			this.updateMessage(chunk)
+		})
+		// child.on('')
 		child.on('close', () => {
 			clearInterval(adInterval)
 		})
@@ -50,9 +57,14 @@ class App extends React.Component {
 
 	async getAd () {
 		// fetch ad and format properly
-		const res = await fetch('http://localhost:3000/api/getAd')
-		const json = await res.json()
-		const { url, title, body } = json
+		let url, title, body
+		if (process.env.NODE_ENV === 'production') {
+			const res = await fetch('http://localhost:3000/api/getAd')
+			const json = await res.json()
+			({ url, title, body } = json)
+		} else {
+			({ url, title, body } = testAds[Math.floor(Math.random() * 3)])
+		}
 
 		const adWidth = termSize().columns / 2
 		const topBorder = `┌${'─'.repeat(adWidth)}┐`
@@ -83,6 +95,10 @@ class App extends React.Component {
 
 	updateOutput (chunk) {
 		this.setState(({ output }) => ({ output: output.concat(chunk) }))
+	}
+
+	updateMessage (chunk) {	
+		this.setState(({ message }) => ({ message: message.concat(chunk) }))
 	}
 
 	getChildCmd () {
