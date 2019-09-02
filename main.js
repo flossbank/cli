@@ -10,6 +10,7 @@ const {
 	getAdBody,
 } = require('./lib/adHelpers')
 const { INTERVAL } = require('./lib/constants')
+const defaultAds = require('./data/defaultAds.json')
 
 class App extends React.Component {
 	constructor (props) {
@@ -21,7 +22,8 @@ class App extends React.Component {
 			ad: null,
 			command,
 			args,
-			output: []
+			output: [],
+			message: []
 		}
 
 		this.updateOutput = this.updateOutput.bind(this)
@@ -45,24 +47,24 @@ class App extends React.Component {
 		setTimeout(() => this.getAds(), INTERVAL)
 	}
 
-	noAd () {
-		this.setState({ ad: null })
+	getRandomDefaultAd () {
+		return defaultAds[Math.floor(Math.random() * 3)]
 	}
 
 	async fetchAd () {
 		// fetch ad and format properly
 		let json = {}
-		try {
-			const res = await fetch('http://localhost:3000/api/getAd')
-			json = await res.json()
-		} catch (e) {
-			return this.noAd()
+		if (process.env.NODE_ENV === 'production') {
+			try {
+				const res = await fetch('http://localhost:3000/api/getAd')
+				json = await res.json()
+			} catch (e) {
+				json = this.getRandomDefaultAd()
+			}
+		} else {
+			json = this.getRandomDefaultAd()
 		}
 		const { url, title, body } = json
-
-		if (!url || !title || !body) {
-			return this.noAd()
-		}
 
 		const adWidth = termSize().columns / 2
 		const topBorder = `┌${'─'.repeat(adWidth)}┐`
@@ -93,6 +95,10 @@ class App extends React.Component {
 
 	updateOutput (chunk) {
 		this.setState(({ output }) => ({ output: output.concat(chunk) }))
+	}
+
+	updateMessage (chunk) {	
+		this.setState(({ message }) => ({ message: message.concat(chunk) }))
 	}
 
 	getChildCmd () {
