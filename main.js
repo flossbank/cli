@@ -1,15 +1,16 @@
 const React = require('react')
 const PropTypes = require('prop-types')
 const { spawn } = require('child_process')
-const { 
-	getRandomColor, 
-	getAdBody,
-} = require('./lib/adHelpers')
-const testAds = require('./testData/testAds.json')
 const { Box, Text, Color } = require('ink')
 const { default: Spinner } = require('ink-spinner')
 const fetch = require('node-fetch')
 const termSize = require('term-size')
+const {
+	getRandomColor,
+	getAdBody,
+} = require('./lib/adHelpers')
+const { INTERVAL } = require('./lib/constants')
+const defaultAds = require('./data/defaultAds.json')
 
 class App extends React.Component {
 	constructor (props) {
@@ -18,7 +19,7 @@ class App extends React.Component {
 		const { command, args } = this.getChildCmd()
 
 		this.state = {
-			ad: this.getTempAd(),
+			ad: null,
 			command,
 			args,
 			output: [],
@@ -30,36 +31,40 @@ class App extends React.Component {
 
 	componentDidMount () {
 		// kick off ad fetching
-		this.getAd()
-		const adInterval = setInterval(() => this.getAd(), 2000)
+		this.getAds()
 
 		// kick off child command
 		const child = spawn(this.state.command, this.state.args)	
 		child.stdout.on('data', this.updateOutput)
 		child.stderr.on('data', this.updateOutput)
-		child.on('close', () => {
-			clearInterval(adInterval)
+		child.on('close', (code) => {
+			process.exit(code)
 		})
 	}
 
-	getTempAd () {
-		return (
-			<Text>
-				{'\n'}
-			</Text>
-		)
+	async getAds () {
+		await this.fetchAd()
+		setTimeout(() => this.getAds(), INTERVAL)
 	}
 
-	async getAd () {
+	getRandomDefaultAd () {
+		return defaultAds[Math.floor(Math.random() * 2)]
+	}
+
+	async fetchAd () {
 		// fetch ad and format properly
-		let url, title, body
+		let json = {}
 		if (process.env.NODE_ENV === 'production') {
-			const res = await fetch('http://localhost:3000/api/getAd')
-			const json = await res.json()
-			({ url, title, body } = json)
+			try {
+				const res = await fetch('http://localhost:3000/api/getAd')
+				json = await res.json()
+			} catch (e) {
+				json = this.getRandomDefaultAd()
+			}
 		} else {
-			({ url, title, body } = testAds[Math.floor(Math.random() * 3)])
+			json = this.getRandomDefaultAd()
 		}
+		const { url, title, body } = json
 
 		const adWidth = termSize().columns / 2
 		const topBorder = `┌${'─'.repeat(adWidth)}┐`
@@ -104,11 +109,13 @@ class App extends React.Component {
 	render () {
 		return (
 			<Box paddingY={2} flexDirection="column">
+				{this.state.ad && (
 				<Box width="100%" justifyContent="center">
 					<Box>
 						{this.state.ad}
 					</Box>
 				</Box>
+				)}
 				<Box paddingY={1} width="100%" flexDirection="column">
 					<Text>
 						{this.state.output.length
