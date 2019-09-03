@@ -34,13 +34,9 @@ class App extends React.Component {
 		const adInterval = setInterval(() => this.getAd(), 2000)
 
 		// kick off child command
-		const child = spawn(this.state.command, this.state.args)
+		const child = spawn(this.state.command, this.state.args)	
 		child.stdout.on('data', this.updateOutput)
 		child.stderr.on('data', this.updateOutput)
-		child.on('message', (chunk) => {
-			console.log('message')
-			this.updateMessage(chunk)
-		})
 		child.on('close', () => {
 			clearInterval(adInterval)
 		})
@@ -108,18 +104,18 @@ class App extends React.Component {
 	render () {
 		return (
 			<Box paddingY={2} flexDirection="column">
-				<Box paddingY={1} width="100%" flexDirection="column">
-							<Text>
-								{this.state.output.length
-									? this.state.output.join('')
-									: <Spinner type="dots" />
-								}
-							</Text>
-						</Box>
-						<Box width="100%" justifyContent="center">
+				<Box width="100%" justifyContent="center">
 					<Box>
 						{this.state.ad}
 					</Box>
+				</Box>
+				<Box paddingY={1} width="100%" flexDirection="column">
+					<Text>
+						{this.state.output.length
+							? this.state.output.join('')
+							: <Spinner type="dots" />
+						}
+					</Text>
 				</Box>
 			</Box>
 		)
