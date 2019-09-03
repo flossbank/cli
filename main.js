@@ -109,13 +109,6 @@ class App extends React.Component {
 	render () {
 		return (
 			<Box paddingY={2} flexDirection="column">
-				{this.state.ad && (
-				<Box width="100%" justifyContent="center">
-					<Box>
-						{this.state.ad}
-					</Box>
-				</Box>
-				)}
 				<Box paddingY={1} width="100%" flexDirection="column">
 					<Text>
 						{this.state.output.length
@@ -124,6 +117,13 @@ class App extends React.Component {
 						}
 					</Text>
 				</Box>
+				{this.state.ad && (
+				<Box width="100%" justifyContent="center">
+					<Box>
+						{this.state.ad}
+					</Box>
+				</Box>
+				)}
 			</Box>
 		)
 	}
