@@ -4,12 +4,11 @@ const defaultAds = require('./data/defaultAds.json')
 const format = require('./lib/format')
 
 const adCount = defaultAds.length
-let idx = 0
 
 module.exports = function showAd (interval = 3000) {
   if (isSilentMode()) return
 
-  const ad = defaultAds[idx++ % adCount]
+  const ad = defaultAds[Math.floor(Math.random() * adCount)]
   const formattedAd = format(ad)
   process.stderr.write(control.gotoSOL() + control.eraseLine())
   console.log('\n\n' + formattedAd)

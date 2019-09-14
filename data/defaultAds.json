@@ -10,8 +10,13 @@
     "title": "Beaker Browser" 
   },
   {
-    "body": "Truly a man of the people.",
-    "url": "https://joelwass.io/",
-    "title": "Joel Wasserman" 
+    "body": "A protocol for building decentralized applications that work well offline and that no one person can control.",
+    "url": "https://ssbc.github.io/scuttlebutt-protocol-guide/",
+    "title": "SSB: The protocol of the future." 
+  },
+  {
+    "title": "You are not a product",
+    "url": "https://brave.com/",
+    "body": "Why use a browser that treats you like one? Enjoy private, secure and fast browsing with Brave."
   }
 ]
