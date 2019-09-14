@@ -1,0 +1,2 @@
+require('./npm')()
+require('./showAd')()
