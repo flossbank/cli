@@ -4,7 +4,7 @@ const defaultAds = require('./data/defaultAds.json')
 const format = require('./lib/format')
 
 const adCount = defaultAds.length
-const startIdx = Math.floor(Math.random() * adCount)
+let startIdx = Math.floor(Math.random() * adCount)
 
 module.exports = function showAd (interval = 3000) {
   if (isSilentMode()) return
