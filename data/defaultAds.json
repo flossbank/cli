@@ -1,7 +1,17 @@
 [
   {
     "body": "TeacherFund helps public school teachers purchase school supplies to create the best learning environment for teachers",
-    "url": "www.theteacherfund.com",
+    "url": "https://theteacherfund.com",
     "title": "The Teacher Fund" 
+  },
+  {
+    "body": "Beaker is an experimental browser for exploring and building the peer-to-peer Web.",
+    "url": "https://beakerbrowser.com/",
+    "title": "Beaker Browser" 
+  },
+  {
+    "body": "Truly a man of the people.",
+    "url": "https://joelwass.io/",
+    "title": "Joel Wasserman" 
   }
 ]

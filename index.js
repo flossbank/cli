@@ -1,4 +1,2 @@
-const npm = require('./npm')
-const showAd = require('./showAd')
-
-npm(showAd, showAd)
+require('./npm')()
+require('./showAd')()
