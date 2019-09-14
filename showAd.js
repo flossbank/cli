@@ -12,7 +12,7 @@ module.exports = function showAd (interval = 3000) {
   const ad = defaultAds[idx++ % adCount]
   const formattedAd = format(ad)
   process.stderr.write(control.gotoSOL() + control.eraseLine())
-  console.log('\n' + formattedAd + '\n')
+  console.log('\n\n' + formattedAd)
 
   setTimeout(showAd, interval)
 }
