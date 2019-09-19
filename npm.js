@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const log = require('npmlog')
 log.pause() // will be unpaused when config is loaded.
 
