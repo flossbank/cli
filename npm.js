@@ -1,11 +1,6 @@
 #!/usr/bin/env node
-const unsupported = require('npm/lib/utils/unsupported.js')
-unsupported.checkForBrokenNode()
-
 const log = require('npmlog')
 log.pause() // will be unpaused when config is loaded.
-
-unsupported.checkForUnsupportedNode()
 
 const npm = require('npm/lib/npm.js')
 const npmconf = require('npm/lib/config/core.js')

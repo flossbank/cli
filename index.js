@@ -1,16 +1,12 @@
-var ver = process.versions.node;
-var majorVer = parseInt(ver.split('.')[0], 10);
-
-if (majorVer < 4) {
-  console.error('Node version ' + ver + ' is not supported, please use Node.js 4.0 or higher.');
-  process.exit(1); // eslint-disable-line no-process-exit
-}
+const supported = new Set(['yarn', 'npm'])
 
 function main () {
-  var supported = { 'yarn': true, 'npm': true }
-  var pm = process.argv.splice(2, 1)
+  // this takes the first arg (which should be the package manager)
+  // and removes it from the argv (so the actual package manager has
+  // a clean argv to parse)
+  const pm = process.argv.splice(2, 1).pop()
   
-  if (!supported[pm]) {
+  if (!supported.has(pm)) {
     console.error('Unsupported Package Manager. NPM and Yarn are currently supported.')
     process.exit(1)
   }

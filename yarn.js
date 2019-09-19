@@ -3,7 +3,7 @@ module.exports = () => {
     require('yarn/lib/v8-compile-cache')
   } catch (e) {}
   
-  var cli = require('yarn/lib/cli')
+  const cli = require('yarn/lib/cli')
   cli.default()
     .then(() => {
       process.exit(0)
