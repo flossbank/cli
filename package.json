@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"bin": {
-		"osf": "index.js"
+		"osf": "src/index.js"
 	},
 	"engines": {
 		"node": ">=8"

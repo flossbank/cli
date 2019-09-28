@@ -2,7 +2,7 @@ const boxen = require('boxen')
 const chalk = require('chalk')
 const termSize = require('term-size')
 const wrap = require('./wrap')
-const { isCI } = require('./detect')
+const { isCI } = require('../util/detect')
 
 const colors = ['yellow', 'green', 'magenta', 'cyan', 'red']
 let colorIdx = Math.floor(Math.random() * colors.length)
