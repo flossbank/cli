@@ -10,7 +10,7 @@ const { defs } = npmconf
 const { shorthands, types } = defs
 const conf = nopt(types, shorthands)
 
-module.exports = () => {
+module.exports = (done) => {
   npm.argv = conf.argv.remain
   if (npm.deref(npm.argv[0])) npm.command = npm.argv.shift()
   else conf.usage = true
@@ -27,8 +27,9 @@ module.exports = () => {
 
   npm.load(conf, function (er) {
     if (er) return errorHandler(er)
-    npm.commands[npm.command](npm.argv, () => {
+    npm.commands[npm.command](npm.argv, (error) => {
       errorHandler.apply(this, arguments)
+      done(error)
     })
   })
 }

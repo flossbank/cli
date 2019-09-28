@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const { showAds, done } = require('./showAd')
 const supported = new Set(['yarn', 'npm'])
 
 function main () {
@@ -12,8 +13,8 @@ function main () {
     process.exit(1)
   }
 
-  require(`./${pm}`)()
-  require('./showAd')()
+  require(`./${pm}`)(done)
+  showAds()
 }
 
 main()

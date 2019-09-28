@@ -1,15 +1,13 @@
-module.exports = () => {
+module.exports = (done) => {
   try {
     require('yarn/lib/v8-compile-cache')
   } catch (e) {}
 
   const cli = require('yarn/lib/cli')
   cli.default()
-    .then(() => {
-      process.exit(0)
-    })
+    .then(done)
     .catch((error) => {
       console.error(error.stack || error.message || error)
-      process.exitCode = 1
+      done(error)
     })
 }
