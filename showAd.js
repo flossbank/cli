@@ -12,7 +12,13 @@ async function showAds (interval = INTERVAL) {
     getAd = await getAdGetter()
   }
 
-  const ad = await getAd()
+  let ad
+  try {
+    ad = await getAd()
+  } catch (_) {
+    return
+  }
+  if (!ad) return
   const formattedAd = format(ad)
 
   process.stderr.write(control.gotoSOL() + control.eraseLine())

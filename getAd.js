@@ -25,8 +25,12 @@ function createUrl (id, endpoint) {
 }
 
 async function fetchAdBatch (id) {
-  const res = await fetch(createUrl(id, GET_AD))
-  return res.json()
+  try {
+    const res = await fetch(createUrl(id, GET_AD))
+    return res.json()
+  } catch (_) {
+    return []
+  }
 }
 
 async function fetchComplete (seen, id) {
@@ -64,11 +68,11 @@ module.exports = async function getAdGetter () {
     if (complete) {
       try {
         return fetchAd(complete)
-      } catch (e) {}
+      } catch (_) {}
     }
     try {
-      return fetchAd()
-    } catch (e) {
+      return await fetchAd()
+    } catch (_) {
       return getDefaultAd()
     }
   }
