@@ -7,10 +7,14 @@ const {
   COMPLETE
 } = require('../constants')
 
-function Api (id) {
-  this.id = id
+function Api () {
+  this.id = null
   this.unseen = []
   this.seen = []
+}
+
+Api.prototype.setApiKey = function setApiKey (id) {
+  this.id = id
 }
 
 Api.prototype.fetchAd = async function fetchAd () {
@@ -48,6 +52,7 @@ Api.prototype.completeSession = async function completeSession () {
 }
 
 function createUrl (id, endpoint) {
+  if (!id) throw new Error('no id; unable to reach api')
   return `${AD_URI}/${endpoint}?${qs.stringify({ id })}`
 }
 

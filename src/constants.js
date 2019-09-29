@@ -3,6 +3,9 @@ module.exports = {
   AD_URI: 'http://localhost:3000', // TODO replace this with the prod host
   GET_AD: 'getAd',
   COMPLETE: 'complete',
+  DEFAULT_CONFIG: {},
+  CONFIG_DIR: '.npmc',
+  CONFIG_FILENAME: 'config',
   DEFAULT_ADS: [
     {
       body: 'TeacherFund helps public school teachers purchase school supplies to create the best learning environment for teachers',
