@@ -1,18 +1,13 @@
 #!/usr/bin/env node
 const Api = require('./api')
 const Config = require('./config')
-const showAd = require('./ui/showAd')
+const Ui = require('./ui')
 const { INTERVAL } = require('./constants')
 const supported = new Set(['yarn', 'npm'])
 
 async function done (err, api) {
   api.completeSession()
   process.exit(err ? 1 : 0)
-}
-
-async function showAds (api) {
-  await showAd(() => api.fetchAd())
-  setTimeout(showAds, INTERVAL)
 }
 
 async function main () {
@@ -29,13 +24,14 @@ async function main () {
   const pm = require(`./pm/${pmArg}`)
   const api = new Api()
   const config = new Config()
-  const start = () => pm((e) => done(e, api))
+  const ui = new Ui(api, INTERVAL)
+  const startPm = () => pm((e) => done(e, api))
 
   try {
     await config.init()
   } catch (_) {
     // not able to initialize config; pass control to pm
-    start()
+    startPm()
     return
   }
   if (!config.getApiKey()) {
@@ -44,8 +40,8 @@ async function main () {
     api.setApiKey(config.getApiKey())
   }
 
-  showAds(api)
-  start()
+  ui.startAds()
+  startPm()
 }
 
 main()
