@@ -2,6 +2,7 @@ module.exports = {
   INTERVAL: 5000,
   AD_URI: 'http://localhost:3000', // TODO replace this with the prod host
   GET_AD: 'getAd',
+  AUTH: 'auth',
   COMPLETE: 'complete',
   DEFAULT_CONFIG: {},
   CONFIG_DIR: '.npmc',
