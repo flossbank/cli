@@ -11,6 +11,8 @@ async function done (err, api) {
 }
 
 async function main () {
+  // TODO: show help / run auth flow if no params are passed in
+
   // this takes the first arg (which should be the package manager)
   // and removes it from the argv (so the actual package manager has
   // a clean argv to parse)
@@ -35,10 +37,17 @@ async function main () {
     return
   }
   if (!config.getApiKey()) {
-    // TODO launch one-time auth flow
-  } else {
-    api.setApiKey(config.getApiKey())
+    const authToken = await ui.auth()
+    if (!authToken) {
+      // something went wrong with getting the token
+      // pass control to pm and leave
+      startPm()
+      return
+    }
+    await config.setApiKey(authToken)
   }
+
+  api.setApiKey(config.getApiKey())
 
   ui.startAds()
   startPm()

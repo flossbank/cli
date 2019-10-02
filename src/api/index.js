@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const {
   DEFAULT_ADS,
   AD_URI,
+  AUTH,
   GET_AD,
   COMPLETE
 } = require('../constants')
@@ -41,6 +42,14 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
     ads = await res.json()
   } catch (_) {}
   this.unseen.push(...ads)
+}
+
+Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
+  const url = createUrl('authentication', AUTH)
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  })
 }
 
 Api.prototype.completeSession = async function completeSession () {
