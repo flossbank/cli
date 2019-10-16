@@ -1,16 +1,9 @@
-# npmc
+# Flossbank CLI
 
-An npm wrapper that shows ads during installation to compensate the developers whose packages you're installing. 
+A JavaScript package manager wrapper that shows in-terminal ads during installations to compensate the maintainers whose packages are installing.
 
-
-## Install
-
-```bash
-$ npm install --global npmc
-```
-
-## Test 
+## Installation
 
 ```bash
-$ node . install --no-save @material-ui
+$ npm install --global flossbank
 ```
