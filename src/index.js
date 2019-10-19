@@ -23,7 +23,15 @@ async function main () {
     process.exit(1)
   }
 
+  const shouldShowAds = ['install', 'i'].includes(process.argv[2])
   const pm = require(`./pm/${pmArg}`)
+
+  if (!shouldShowAds) {
+    return pm((e) => {
+      process.exit(e ? 1 : 0)
+    })
+  }
+
   const api = new Api()
   const config = new Config()
   const ui = new Ui(api, INTERVAL)
