@@ -3,7 +3,7 @@ const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
 const { INTERVAL } = require('./constants')
-const supported = new Set(['yarn', 'npm'])
+const supported = new Set(['npm'])
 
 async function done (err, api) {
   api.completeSession()
@@ -19,7 +19,7 @@ async function main () {
   const pmArg = process.argv.splice(2, 1).pop()
 
   if (!supported.has(pmArg)) {
-    console.error('Unsupported Package Manager. NPM and Yarn are currently supported.')
+    console.error(`Unsupported package manager. Currently supported: ${[...supported]}`)
     process.exit(1)
   }
 

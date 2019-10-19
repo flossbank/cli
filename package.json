@@ -1,9 +1,10 @@
 {
-	"name": "opsof-node",
+	"name": "flossbank",
 	"version": "0.0.0",
 	"license": "MIT",
+	"main": "src/index.js",
 	"bin": {
-		"osf": "src/index.js"
+		"f": "src/index.js"
 	},
 	"engines": {
 		"node": ">=8"
@@ -23,8 +24,7 @@
 		"npmlog": "^4.1.2",
 		"prompts": "^2.2.1",
 		"term-size": "^2.1.0",
-		"word-wrap": "^1.2.3",
-		"yarn": "^1.17.3"
+		"word-wrap": "^1.2.3"
 	},
 	"devDependencies": {
 		"husky": "^3.0.5",
@@ -37,6 +37,6 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/joelwass/npmc.git"
+		"url": "https://github.com/flossbank/cli.git"
 	}
 }
