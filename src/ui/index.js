@@ -15,7 +15,8 @@ Ui.prototype.startAds = async function startAds () {
 Ui.prototype.auth = async function () {
   const { email } = await auth.getEmail()
   try {
-    await this.api.sendAuthEmail(email)
+    const res = await this.api.sendAuthEmail(email)
+    if (!res.ok) throw new Error(`Could not request auth token email`)
   } catch (e) {
     console.error(
       chalk.red(
