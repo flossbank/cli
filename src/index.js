@@ -2,8 +2,7 @@
 const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
-const { INTERVAL } = require('./constants')
-const supported = new Set(['npm'])
+const { INTERVAL, SUPPORTED_PMS, SUPPORTED_VERBS } = require('./constants')
 
 async function main () {
   // TODO: show help / run auth flow if no params are passed in
@@ -13,14 +12,15 @@ async function main () {
   // a clean argv to parse)
   const pmArg = process.argv.splice(2, 1).pop()
 
-  if (!supported.has(pmArg)) {
-    console.error(`Unsupported package manager. Currently supported: ${[...supported]}`)
+  if (!SUPPORTED_PMS.includes(pmArg)) {
+    console.error(`Unsupported package manager. Currently supported: ${SUPPORTED_PMS}`)
     process.exit(1)
   }
   const pm = require(`./pm/${pmArg}`)
   const pmArgs = new Set(process.argv)
   const pmCmd = [pmArg, ...process.argv.slice(2)].join(' ')
-  const shouldShowAds = pmArgs.has('install') || pmArgs.has('i')
+  const nakedYarn = pmArg === 'yarn' && pmCmd === 'yarn'
+  const shouldShowAds = SUPPORTED_VERBS.some(verb => pmArgs.has(verb)) || nakedYarn
   const noAdsPm = () => pm({ silent: false }, (e) => {
     process.exit(e ? 1 : 0)
   })
