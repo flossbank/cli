@@ -1,5 +1,5 @@
 module.exports = {
-  INTERVAL: 5000,
+  INTERVAL: 4000,
   API_HOST: 'https://flossbank-api.now.sh', // TODO replace this with the prod host
   API_HOST_TEST: 'http://localhost:3000', // TODO replace this with the prod host
   ROUTES: {

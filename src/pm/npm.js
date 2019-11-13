@@ -1,35 +1,10 @@
-const log = require('npmlog')
-log.pause() // will be unpaused when config is loaded.
+const { spawn, execFile } = require('child_process')
 
-const npm = require('npm/lib/npm.js')
-const npmconf = require('npm/lib/config/core.js')
-const errorHandler = require('npm/lib/utils/error-handler.js')
-const nopt = require('nopt')
-
-const { defs } = npmconf
-const { shorthands, types } = defs
-const conf = nopt(types, shorthands)
-
-module.exports = (done) => {
-  npm.argv = conf.argv.remain
-  if (npm.deref(npm.argv[0])) npm.command = npm.argv.shift()
-  else conf.usage = true
-
-  process.on('uncaughtException', errorHandler)
-  process.on('unhandledRejection', errorHandler)
-
-  if (conf.usage && npm.command !== 'help') {
-    npm.argv.unshift(npm.command)
-    npm.command = 'help'
+module.exports = async ({ silent }, done) => {
+  if (!silent) {
+    return spawn('npm', process.argv.slice(2), { stdio: 'inherit' })
+    // for offline testing: return spawn('ping', ['-c', '5', '127.0.0.1'], { stdio: 'inherit' })
   }
-
-  conf._exit = true
-
-  npm.load(conf, function (er) {
-    if (er) return errorHandler(er)
-    npm.commands[npm.command](npm.argv, (error) => {
-      errorHandler.apply(this, arguments)
-      done(error)
-    })
-  })
+  return execFile('npm', process.argv.slice(2), done)
+  // for offline testing: return execFile('ping', ['-c', '5', '127.0.0.1'], done)
 }

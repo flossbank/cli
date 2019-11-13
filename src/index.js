@@ -5,11 +5,6 @@ const Ui = require('./ui')
 const { INTERVAL } = require('./constants')
 const supported = new Set(['npm'])
 
-async function done (err, api) {
-  api.completeSession()
-  process.exit(err ? 1 : 0)
-}
-
 async function main () {
   // TODO: show help / run auth flow if no params are passed in
 
@@ -22,35 +17,44 @@ async function main () {
     console.error(`Unsupported package manager. Currently supported: ${[...supported]}`)
     process.exit(1)
   }
-
-  const shouldShowAds = ['install', 'i'].includes(process.argv[2])
   const pm = require(`./pm/${pmArg}`)
+  const pmArgs = new Set(process.argv)
+  const pmCmd = [pmArg, ...process.argv.slice(2)].join(' ')
+  const shouldShowAds = pmArgs.has('install') || pmArgs.has('i')
+  const noAdsPm = () => pm({ silent: false }, (e) => {
+    process.exit(e ? 1 : 0)
+  })
 
   if (!shouldShowAds) {
-    return pm((e) => {
-      process.exit(e ? 1 : 0)
-    })
+    return noAdsPm()
   }
 
   const api = new Api()
   const config = new Config()
-  const ui = new Ui(api, INTERVAL)
-  const startPm = () => pm((e) => done(e, api))
+  const ui = new Ui(api, INTERVAL, pmCmd, async () => {
+    try {
+      await api.completeSession()
+    } catch (_) {}
+  })
+
+  const adsPm = () => {
+    pm({ silent: true }, (e, stdout, stderr) => {
+      ui.setPmOutput(e, stdout, stderr)
+    })
+  }
 
   try {
     await config.init()
   } catch (_) {
     // not able to initialize config; pass control to pm
-    startPm()
-    return
+    return noAdsPm()
   }
   if (!config.getApiKey()) {
     const authToken = await ui.auth()
     if (!authToken) {
       // something went wrong with getting the token
       // pass control to pm and leave
-      startPm()
-      return
+      return noAdsPm()
     }
     await config.setApiKey(authToken)
   }
@@ -58,7 +62,7 @@ async function main () {
   api.setApiKey(config.getApiKey())
 
   ui.startAds()
-  startPm()
+  adsPm()
 }
 
 main()
