@@ -35,8 +35,10 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   let ads = []
   try {
     const res = await fetch(url, options)
-    ads = await res.json()
-  } catch (_) {}
+    const json = await res.json()
+    ads = json.ads
+    this.sessionId = json.sessionId
+  } catch (_) { }
   this.unseen.push(...ads)
 }
 
@@ -50,20 +52,21 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
 }
 
 Api.prototype.completeSession = async function completeSession () {
-  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', this.seen)
+  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: this.seen })
   return fetch(url, options)
 }
 
-Api.prototype.createRequest = function createRequest (endpoint, method, body) {
+Api.prototype.createRequest = function createRequest (endpoint, method, payload) {
   if (!this.key) throw new Error('no api key; unable to reach api')
   const url = `${this.url}/${endpoint}`
+  const body = Object.assign({}, { sessionId: this.sessionId }, payload)
   const options = {
     headers: {
       'content-type': 'application/json',
-      authentication: `Bearer ${this.key}`
+      authorization: `Bearer ${this.key}`
     },
     method,
-    body: JSON.stringify(body)
+    ...method === 'POST' && { body: JSON.stringify(body) }
   }
   return [url, options]
 }

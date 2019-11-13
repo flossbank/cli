@@ -40,7 +40,7 @@ test('completeSession | creates request', async (t) => {
   const api = new Api()
   sinon.stub(api, 'createRequest').returns(['url', {}])
   await api.completeSession()
-  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', api.seen))
+  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', { seen: api.seen }))
 })
 
 test('createRequest | no key throws', async (t) => {
@@ -51,10 +51,10 @@ test('createRequest | no key throws', async (t) => {
 test('createRequest | creates request', async (t) => {
   const api = new Api()
   api.key = 'abc'
-  const [url, options] = api.createRequest('endpoint', 'method', { a: 1 })
+  const [url, options] = api.createRequest('endpoint', 'POST', { a: 1 })
   t.deepEqual(url, `${API_HOST_TEST}/endpoint`)
-  t.deepEqual(options.headers.authentication, 'Bearer abc')
+  t.deepEqual(options.headers.authorization, 'Bearer abc')
   t.deepEqual(options.headers['content-type'], 'application/json')
-  t.deepEqual(options.method, 'method')
+  t.deepEqual(options.method, 'POST')
   t.deepEqual(options.body, '{"a":1}')
 })
