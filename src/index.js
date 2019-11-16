@@ -2,7 +2,7 @@
 const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
-const { INTERVAL, SUPPORTED_PMS, SUPPORTED_VERBS } = require('./constants')
+const { INTERVAL, SUPPORTED_PMS } = require('./constants')
 
 async function main () {
   // TODO: show help / run auth flow if no params are passed in
@@ -17,19 +17,17 @@ async function main () {
     process.exit(1)
   }
   const pm = require(`./pm/${pmArg}`)
-  const pmArgs = new Set(process.argv)
   const pmCmd = [pmArg, ...process.argv.slice(2)].join(' ')
-  const nakedYarn = pmArg === 'yarn' && pmCmd === 'yarn'
-  const shouldShowAds = SUPPORTED_VERBS.some(verb => pmArgs.has(verb)) || nakedYarn
-  const noAdsPm = () => pm({ silent: false }, (e) => {
+  const shouldShowAds = pm.isSupportedVerb(pmCmd)
+  const noAdsPm = () => pm.start({ silent: false }, (e) => {
     process.exit(e ? 1 : 0)
   })
 
   if (!shouldShowAds) {
     return noAdsPm()
   }
-
-  const api = new Api()
+  const topLevelPackages = await pm.getTopLevelPackages()
+  const api = new Api(pmArg, topLevelPackages)
   const config = new Config()
   const ui = new Ui(api, INTERVAL, pmCmd, async () => {
     try {
@@ -38,7 +36,7 @@ async function main () {
   })
 
   const adsPm = () => {
-    pm({ silent: true }, (e, stdout, stderr) => {
+    pm.start({ silent: true }, (e, stdout, stderr) => {
       ui.setPmOutput(e, stdout, stderr)
     })
   }

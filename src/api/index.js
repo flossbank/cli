@@ -1,3 +1,4 @@
+const qs = require('querystring')
 const fetch = require('node-fetch')
 const {
   API_HOST,
@@ -5,7 +6,9 @@ const {
   ROUTES
 } = require('../constants')
 
-function Api () {
+function Api (pm, packages) {
+  this.pm = pm
+  this.packages = packages
   this.url = process.env.NODE_ENV === 'production'
     ? API_HOST
     : API_HOST_TEST
@@ -31,7 +34,10 @@ Api.prototype.fetchAd = async function fetchAd () {
 }
 
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
-  const [url, options] = this.createRequest(ROUTES.GET_AD, 'GET')
+  const [url, options] = this.createRequest(ROUTES.GET_AD, 'POST', {
+    packageManager: this.pm,
+    packages: this.packages
+  })
   let ads = []
   try {
     const res = await fetch(url, options)
@@ -58,7 +64,7 @@ Api.prototype.completeSession = async function completeSession () {
 
 Api.prototype.createRequest = function createRequest (endpoint, method, payload) {
   if (!this.key) throw new Error('no api key; unable to reach api')
-  const url = `${this.url}/${endpoint}`
+  let url = `${this.url}/${endpoint}`
   const body = Object.assign({}, { sessionId: this.sessionId }, payload)
   const options = {
     headers: {
@@ -67,6 +73,9 @@ Api.prototype.createRequest = function createRequest (endpoint, method, payload)
     },
     method,
     ...method === 'POST' && { body: JSON.stringify(body) }
+  }
+  if (method === 'GET') {
+    url += `?${qs.stringify(body)}`
   }
   return [url, options]
 }

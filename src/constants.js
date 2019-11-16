@@ -10,6 +10,5 @@ module.exports = {
   DEFAULT_CONFIG: {},
   CONFIG_DIR: '.flossbank',
   CONFIG_FILENAME: 'config',
-  SUPPORTED_PMS: ['npm', 'yarn'],
-  SUPPORTED_VERBS: ['install', 'add', 'i']
+  SUPPORTED_PMS: ['npm', 'yarn']
 }
