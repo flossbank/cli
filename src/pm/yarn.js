@@ -10,6 +10,10 @@ exports.start = async function ({ silent }, done) {
 }
 
 exports.isSupportedVerb = function (cmd) {
+  // confirm that the command being run is a supported form:
+  //   yarn
+  //   yarn install
+  //   yarn add <optional pkgs here>
   const verbs = new Set(['install', 'add'])
   const split = cmd.split(' ')
   if (split.length === 1 && split[0] === 'yarn') return true

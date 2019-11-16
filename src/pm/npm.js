@@ -12,6 +12,9 @@ exports.start = async function ({ silent }, done) {
 }
 
 exports.isSupportedVerb = function (cmd) {
+  // confirm that the command being run is a supported form:
+  //   npm install <optional pkgs here>
+  //   npm i <optional pkgs here>
   const split = cmd.split(' ')
   return split.length >= 2 && (split[1] === 'install' || split[1] === 'i')
 }
