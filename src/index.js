@@ -27,7 +27,7 @@ async function main () {
     return noAdsPm()
   }
   const topLevelPackages = await pm.getTopLevelPackages()
-  const api = new Api(pmArg, topLevelPackages)
+  const api = new Api(topLevelPackages)
   const config = new Config()
   const ui = new Ui(api, INTERVAL, pmCmd, async () => {
     try {
