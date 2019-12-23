@@ -6,8 +6,7 @@ const {
   ROUTES
 } = require('../constants')
 
-function Api (pm, packages) {
-  this.pm = pm
+function Api (packages) {
   this.packages = packages
   this.url = process.env.NODE_ENV === 'production'
     ? API_HOST
@@ -35,7 +34,7 @@ Api.prototype.fetchAd = async function fetchAd () {
 
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   const [url, options] = this.createRequest(ROUTES.GET_AD, 'POST', {
-    packageManager: this.pm,
+    registry: 'npm',
     packages: this.packages
   })
   let ads = []

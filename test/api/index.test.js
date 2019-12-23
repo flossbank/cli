@@ -30,11 +30,11 @@ test('fetchAd | gets an ad', async (t) => {
 })
 
 test('fetchAdBatch | creates request', async (t) => {
-  const api = new Api('pm', ['abc'])
+  const api = new Api(['abc'])
   sinon.stub(api, 'createRequest').returns(['url', {}])
   await api.fetchAdBatch()
   t.true(api.createRequest.calledWith(ROUTES.GET_AD, 'POST', {
-    packageManager: 'pm',
+    registry: 'npm',
     packages: ['abc']
   }))
 })

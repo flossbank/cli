@@ -15,12 +15,7 @@ function Ui (api, adInterval, pmCmd, doneShowingAds) {
   this.doneShowingAds = doneShowingAds
 
   this.runtime = 0
-
-  diffy.render(() => this.getExecString())
-  this.renderInterval = setInterval(() => {
-    this.runtime++
-    diffy.render()
-  }, 1000)
+  this.init = false
 }
 
 Ui.prototype.getExecString = function getExecString () {
@@ -29,6 +24,14 @@ Ui.prototype.getExecString = function getExecString () {
 }
 
 Ui.prototype.startAds = async function startAds () {
+  if (!this.init) {
+    this.init = true
+    diffy.render(() => this.getExecString())
+    this.renderInterval = setInterval(() => {
+      this.runtime++
+      diffy.render()
+    }, 1000)
+  }
   if (!this.pmDone) {
     let ad
     try {
