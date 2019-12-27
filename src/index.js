@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
@@ -63,4 +62,4 @@ async function main () {
   adsPm()
 }
 
-main()
+module.exports = main

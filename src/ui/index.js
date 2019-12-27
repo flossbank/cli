@@ -85,8 +85,7 @@ Ui.prototype.auth = async function () {
   } catch (e) {
     console.error(
       chalk.red(
-        // TODO make this error message accurate
-        'Unable to request authentication token. Please email blah@blah.com for support.'
+        'Unable to request authentication token. Please email support@flossbank.com for support.'
       )
     )
     return
