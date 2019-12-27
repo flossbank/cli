@@ -1,2 +1,4 @@
 test
 .nyc_output
+src
+webpack.config.js
