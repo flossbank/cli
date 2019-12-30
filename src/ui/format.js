@@ -1,7 +1,6 @@
 const boxen = require('boxen')
 const chalk = require('chalk')
 const wrap = require('./wrap')
-const { isCI } = require('../util/detect')
 
 const colors = ['yellow', 'green', 'magenta', 'cyan', 'red']
 let colorIdx = Math.floor(Math.random() * colors.length)
@@ -11,35 +10,22 @@ function getNextColor () {
 }
 
 function formatTitle (title) {
-  title = wrap(title)
-
-  if (!isCI()) {
-    title = chalk.white(title)
-  }
-
-  title = chalk.bold(title)
-
-  return title
+  return chalk.white.bold(wrap(title))
 }
 
 function formatText (text) {
-  text = wrap(text)
-
-  text = text.replace(
-    /{{([^}]*?)}}/g,
-    (_, url) => chalk.blue.underline(url)
+  return chalk.white(
+    wrap(
+      text.replace(
+        /{{([^}]*?)}}/g,
+        (_, url) => chalk.blue.underline(url)
+      )
+    )
   )
-
-  if (!isCI()) {
-    text = chalk.white(text)
-  }
-
-  return text
 }
 
 function formatUrl (url) {
-  url = wrap(url, { cut: true })
-  return chalk.blue.underline(url)
+  return chalk.blue.underline(wrap(url, { cut: true }))
 }
 
 module.exports = function formatMessage (message) {

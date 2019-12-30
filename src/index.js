@@ -1,65 +1,76 @@
 const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
-const { INTERVAL, SUPPORTED_PMS } = require('./constants')
+const Pm = require('./pm')
+const Args = require('./args')
 
-async function main () {
-  // TODO: show help / run auth flow if no params are passed in
+module.exports = async () => {
+  const config = new Config()
+  const api = new Api({ config })
+  const pm = new Pm()
+  const ui = new Ui()
+  const args = new Args()
+  const exit = (e) => {
+    process.exit(e ? 1 : 0)
+  }
 
-  // this takes the first arg (which should be the package manager)
-  // and removes it from the argv (so the actual package manager has
-  // a clean argv to parse)
-  const pmArg = process.argv.splice(2, 1).pop()
+  const { hasArgs, help, auth } = args.init()
 
-  if (!SUPPORTED_PMS.includes(pmArg)) {
-    console.error(`Unsupported package manager. Currently supported: ${SUPPORTED_PMS}`)
+  const { supportedPm, adsPm, noAdsPm } = await pm.init()
+
+  if (!supportedPm && !hasArgs) {
+    ui.error('Flossbank: unsupported package manager.')
     process.exit(1)
   }
-  const pm = require(`./pm/${pmArg}`)
-  const pmCmd = [pmArg, ...process.argv.slice(2)].join(' ')
-  const shouldShowAds = pm.isSupportedVerb(pmCmd)
-  const noAdsPm = () => pm.start({ silent: false }, (e) => {
-    process.exit(e ? 1 : 0)
-  })
 
-  if (!shouldShowAds) {
-    return noAdsPm()
-  }
-  const topLevelPackages = await pm.getTopLevelPackages()
-  const api = new Api(topLevelPackages)
-  const config = new Config()
-  const ui = new Ui(api, INTERVAL, pmCmd, async () => {
-    try {
-      await api.completeSession()
-    } catch (_) {}
-  })
-
-  const adsPm = () => {
-    pm.start({ silent: true }, (e, stdout, stderr) => {
-      ui.setPmOutput(e, stdout, stderr)
-    })
+  if (!pm.shouldShowAds() && !hasArgs) {
+    return noAdsPm(exit)
   }
 
   try {
     await config.init()
   } catch (_) {
-    // not able to initialize config; pass control to pm
-    return noAdsPm()
-  }
-  if (!config.getApiKey()) {
-    const authToken = await ui.auth()
-    if (!authToken) {
-      // something went wrong with getting the token
-      // pass control to pm and leave
-      return noAdsPm()
+    if (!hasArgs) {
+      ui.error('Flossbank: unable to initialize config.')
+      process.exit(1)
     }
-    await config.setApiKey(authToken)
+    return noAdsPm(exit)
+  }
+
+  const haveApiKey = config.getApiKey()
+
+  if (help) {
+    return ui.showHelp()
+  }
+  if (auth) {
+    const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
+    if (!apiKey) return
+    return config.setApiKey(apiKey)
+  }
+
+  if (!haveApiKey) {
+    const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
+    if (!apiKey) {
+      // something went wrong with getting the key
+      // pass control to pm and leave
+      return noAdsPm(exit)
+    }
+    await config.setApiKey(apiKey)
   }
 
   api.setApiKey(config.getApiKey())
 
-  ui.startAds()
-  adsPm()
-}
+  api.setTopLevelPackages(await pm.getTopLevelPackages())
 
-module.exports = main
+  ui.setPmCmd(pm.getPmCmd())
+    .setCallback(async () => {
+      try {
+        await api.completeSession()
+      } catch (_) {}
+    })
+    .startAds({ fetchAd: api.fetchAd.bind(api) })
+
+  adsPm((e, stdout, stderr) => {
+    ui.setPmOutput(e, stdout, stderr)
+  })
+}

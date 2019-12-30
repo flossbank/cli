@@ -1,10 +1,19 @@
 const prompts = require('prompts')
 
+exports.confirm = async function confirm () {
+  return prompts({
+    type: 'confirm',
+    name: 'shouldContinue',
+    message: 'A Flossbank API key is already configured. Override?',
+    initial: false
+  })
+}
+
 exports.getEmail = async function getEmail () {
   return prompts({
     type: 'text',
     name: 'email',
-    message: 'Please enter your email address to send your authentication token:'
+    message: 'Flossbank: please enter your email address to send your authentication token:'
   })
 }
 
