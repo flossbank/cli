@@ -3,19 +3,30 @@ const prompts = require('prompts')
 const diffy = require('diffy')()
 const auth = require('./auth')
 const format = require('./format')
+const { INTERVAL, USAGE } = require('../constants')
 
-function Ui (api, adInterval, pmCmd, doneShowingAds) {
-  this.pmCmd = pmCmd
-  this.api = api
-  this.interval = adInterval
+function Ui () {
+  this.interval = INTERVAL
   this.pmStdout = ''
   this.pmStderr = ''
   this.pmDone = false
   this.pmError = null
-  this.doneShowingAds = doneShowingAds
+
+  this.pmCmd = null
+  this.doneShowingAds = () => {}
 
   this.runtime = 0
   this.init = false
+}
+
+Ui.prototype.setPmCmd = function setPmCmd (pmCmd) {
+  this.pmCmd = pmCmd
+  return this
+}
+
+Ui.prototype.setCallback = function setCallback (cb) {
+  this.doneShowingAds = cb
+  return this
 }
 
 Ui.prototype.getExecString = function getExecString () {
@@ -23,7 +34,7 @@ Ui.prototype.getExecString = function getExecString () {
   return `Executing ${chalk.bold(this.pmCmd)}${suffix}`
 }
 
-Ui.prototype.startAds = async function startAds () {
+Ui.prototype.startAds = async function startAds ({ fetchAd }) {
   if (!this.init) {
     this.init = true
     diffy.render(() => this.getExecString())
@@ -35,7 +46,7 @@ Ui.prototype.startAds = async function startAds () {
   if (!this.pmDone) {
     let ad
     try {
-      ad = await this.api.fetchAd()
+      ad = await fetchAd()
     } catch (_) {
       return this.failure()
     }
@@ -43,7 +54,7 @@ Ui.prototype.startAds = async function startAds () {
 
     const formattedAd = format(ad)
     diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
-    setTimeout(() => this.startAds(), this.interval)
+    setTimeout(() => this.startAds({ fetchAd }), this.interval)
   } else {
     this.doneShowingAds()
     this.showCompletion()
@@ -77,10 +88,15 @@ Ui.prototype.showCompletion = async function showCompletion () {
   }
 }
 
-Ui.prototype.auth = async function () {
+Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail }) {
+  if (haveApiKey) {
+    const { shouldContinue } = await auth.confirm()
+    if (!shouldContinue) return
+  }
   const { email } = await auth.getEmail()
+  if (!email) return
   try {
-    const res = await this.api.sendAuthEmail(email)
+    const res = await sendAuthEmail(email)
     if (!res.ok) throw new Error(`Could not request auth token email`)
   } catch (e) {
     console.error(
@@ -94,11 +110,27 @@ Ui.prototype.auth = async function () {
   return token
 }
 
-Ui.prototype.setPmOutput = function (e, stdout, stderr) {
+Ui.prototype.setPmOutput = function setPmOutput (e, stdout, stderr) {
   this.pmStdout = stdout
   this.pmStderr = stderr
   this.pmError = e
   this.pmDone = true
+}
+
+Ui.prototype.showHelp = function showHelp () {
+  console.log(USAGE)
+}
+
+Ui.prototype.info = function info (msg) {
+  console.log(msg)
+}
+
+Ui.prototype.warn = function warn (msg) {
+  console.log(chalk.yellow(msg))
+}
+
+Ui.prototype.error = function error (msg) {
+  console.log(chalk.red(msg))
 }
 
 module.exports = Ui

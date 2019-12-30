@@ -1,23 +1,21 @@
 const qs = require('querystring')
 const fetch = require('node-fetch')
-const {
-  API_HOST,
-  API_HOST_TEST,
-  ROUTES
-} = require('../constants')
+const { API_HOST, ROUTES } = require('../constants')
 
-function Api (packages) {
-  this.packages = packages
-  this.url = process.env.NODE_ENV === 'production'
-    ? API_HOST
-    : API_HOST_TEST
-  this.key = null
+function Api ({ config }) {
+  this.url = API_HOST
+  this.config = config
+  this.packages = null
   this.unseen = []
   this.seen = []
 }
 
-Api.prototype.setApiKey = function setApiKey (key) {
-  this.key = key
+Api.prototype.getApiKey = function getApiKey () {
+  return this.config.getApiKey()
+}
+
+Api.prototype.setTopLevelPackages = function setTopLevelPackages (pkgs) {
+  this.packages = pkgs
 }
 
 Api.prototype.fetchAd = async function fetchAd () {
@@ -62,13 +60,13 @@ Api.prototype.completeSession = async function completeSession () {
 }
 
 Api.prototype.createRequest = function createRequest (endpoint, method, payload) {
-  if (!this.key) throw new Error('no api key; unable to reach api')
+  if (!this.getApiKey()) throw new Error('no api key; unable to reach api')
   let url = `${this.url}/${endpoint}`
   const body = Object.assign({}, { sessionId: this.sessionId }, payload)
   const options = {
     headers: {
       'content-type': 'application/json',
-      authorization: `Bearer ${this.key}`
+      authorization: `Bearer ${this.getApiKey()}`
     },
     method,
     ...method === 'POST' && { body: JSON.stringify(body) }
