@@ -1,50 +1,21 @@
-const path = require('path')
-const { homedir } = require('os')
-const { readFile, writeFile } = require('fs')
-const { promisify } = require('util')
-const makeDir = require('make-dir')
+const Conf = require('conf')
 const {
-  DEFAULT_CONFIG,
-  CONFIG_DIR,
-  CONFIG_FILENAME
+  PROJECT_NAME,
+  CONFIG_API_KEY
 } = require('../constants')
 
-const readFileAsync = promisify(readFile)
-const writeFileAsync = promisify(writeFile)
-
 function Config () {
-  this.configPath = path.join(homedir(), CONFIG_DIR)
-  this.configFile = path.join(this.configPath, CONFIG_FILENAME)
-  this.config = null
-}
-
-Config.prototype.init = async function init () {
-  this.config = await readConfigFile(this.configFile)
+  this.conf = new Conf({
+    projectName: PROJECT_NAME
+  })
 }
 
 Config.prototype.getApiKey = function getApiKey () {
-  return this.config.apiKey
+  return this.conf.get(CONFIG_API_KEY)
 }
 
 Config.prototype.setApiKey = async function setApiKey (apiKey) {
-  this.config.apiKey = apiKey
-  await writeConfigFile(this.configPath, this.configFile, this.config)
-}
-
-async function readConfigFile (configFile) {
-  let config
-  try {
-    const file = await readFileAsync(configFile, 'utf8')
-    config = JSON.parse(file)
-  } catch (_) {
-    return DEFAULT_CONFIG
-  }
-  return config || DEFAULT_CONFIG
-}
-
-async function writeConfigFile (configPath, configFile, config) {
-  await makeDir(configPath)
-  await writeFileAsync(configFile, JSON.stringify(config))
+  return this.conf.set(CONFIG_API_KEY, apiKey)
 }
 
 module.exports = Config

@@ -27,16 +27,6 @@ module.exports = async () => {
     return noAdsPm(exit)
   }
 
-  try {
-    await config.init()
-  } catch (_) {
-    if (!hasArgs) {
-      ui.error('Flossbank: unable to initialize config.')
-      process.exit(1)
-    }
-    return noAdsPm(exit)
-  }
-
   const haveApiKey = config.getApiKey()
 
   if (help) {

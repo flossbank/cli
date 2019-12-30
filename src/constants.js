@@ -7,8 +7,8 @@ module.exports = {
     SEND_AUTH: 'auth/send'
   },
   DEFAULT_CONFIG: {},
-  CONFIG_DIR: '.flossbank',
-  CONFIG_FILENAME: 'config',
+  PROJECT_NAME: 'flossbank',
+  CONFIG_API_KEY: 'apiKey',
   SUPPORTED_PMS: ['npm', 'yarn'],
   USAGE: `
   Usage:
