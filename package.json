@@ -9,6 +9,7 @@
 		"node": ">=8"
 	},
 	"scripts": {
+		"postinstall": "flossbank install && source $(flossbank source)",
 		"prepare": "npm t && webpack",
 		"test": "standard && nyc ava"
 	},

@@ -3,18 +3,20 @@ const Config = require('./config')
 const Ui = require('./ui')
 const Pm = require('./pm')
 const Args = require('./args')
+const Alias = require('./util/alias')
 
 module.exports = async () => {
   const config = new Config()
   const api = new Api({ config })
+  const alias = new Alias({ config })
   const pm = new Pm()
   const ui = new Ui()
-  const args = new Args()
+  const args = new Args({ api, ui, config, alias })
   const exit = (e) => {
     process.exit(e ? 1 : 0)
   }
 
-  const { hasArgs, help, auth } = args.init()
+  const { hasArgs } = args.init()
 
   const { supportedPm, adsPm, noAdsPm } = await pm.init()
 
@@ -29,14 +31,7 @@ module.exports = async () => {
 
   const haveApiKey = config.getApiKey()
 
-  if (help) {
-    return ui.showHelp()
-  }
-  if (auth) {
-    const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
-    if (!apiKey) return
-    return config.setApiKey(apiKey)
-  }
+  if (hasArgs) return args.act()
 
   if (!haveApiKey) {
     const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
