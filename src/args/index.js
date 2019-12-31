@@ -49,7 +49,6 @@ Args.prototype.act = async function act () {
     try {
       await this.alias.aliasAll()
     } catch (e) {
-      console.log(e)
       this.ui.error('Flossbank failed to install. Please contact support@flossbank.com for help.')
       return
     }
