@@ -5,6 +5,7 @@
 	"bin": {
 		"flossbank": "bin.js"
 	},
+	"preferGlobal": true,
 	"engines": {
 		"node": ">=8"
 	},
@@ -29,6 +30,7 @@
 		"sinon": "^7.5.0",
 		"standard": "^13.1.0",
 		"term-size": "^2.1.0",
+		"update-notifier": "^4.0.0",
 		"webpack": "^4.41.4",
 		"webpack-cli": "^3.3.10",
 		"word-wrap": "^1.2.3"

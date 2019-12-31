@@ -4,6 +4,7 @@ const Ui = require('./ui')
 const Pm = require('./pm')
 const Args = require('./args')
 const Alias = require('./util/alias')
+const updateNotifier = require('update-notifier')
 
 module.exports = async () => {
   const config = new Config()
@@ -58,4 +59,6 @@ module.exports = async () => {
   adsPm((e, stdout, stderr) => {
     ui.setPmOutput(e, stdout, stderr)
   })
+
+  updateNotifier({ pkg: require('../package.json') }).notify()
 }
