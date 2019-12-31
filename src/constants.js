@@ -6,9 +6,12 @@ module.exports = {
     COMPLETE: 'session/complete',
     SEND_AUTH: 'auth/send'
   },
+  SUPPORTED_ARGS: ['help', 'auth', 'install', 'uninstall', 'source'],
   DEFAULT_CONFIG: {},
-  CONFIG_DIR: '.flossbank',
-  CONFIG_FILENAME: 'config',
+  PROJECT_NAME: 'flossbank',
+  CONFIG_API_KEY: 'apiKey',
+  SHEBANG: '#!/usr/bin/env bash',
+  ALIAS_FILE: 'flossbank_aliases.sh',
   SUPPORTED_PMS: ['npm', 'yarn'],
   USAGE: `
   Usage:

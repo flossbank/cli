@@ -13,13 +13,13 @@ $ npm install --global @flossbank/cli
 We recommend adding an alias to your shell's startup scripts (e.g. `~/.bash_profile`) so that all calls to `npm` compensate open source maintainers:
 
 ```bash
-alias npm="flossbank \npm"
+alias npm="flossbank npm"
 ```
 
 Other package managers can be wrapped similarly:
 
 ```bash
-alias yarn="flossbank \yarn"
+alias yarn="flossbank yarn"
 ```
 
 ## Usage
