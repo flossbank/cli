@@ -16,8 +16,8 @@ function createAlias (cmd) {
   return `alias ${cmd}="${PROJECT_NAME} ${cmd}"`
 }
 
-function createRemoveAlias (cmd) {
-  return `unalias ${cmd}`
+function createRemoveAlias () {
+  return ''
 }
 
 function jsonToShell (json) {

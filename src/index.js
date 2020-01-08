@@ -45,8 +45,6 @@ module.exports = async () => {
     await config.setApiKey(apiKey)
   }
 
-  api.setApiKey(config.getApiKey())
-
   api.setTopLevelPackages(await pm.getTopLevelPackages())
 
   ui.setPmCmd(pm.getPmCmd())

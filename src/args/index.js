@@ -1,16 +1,17 @@
 const { SUPPORTED_ARGS } = require('../constants')
 
+const HANDLERS = SUPPORTED_ARGS.reduce((handlers, arg) => {
+  handlers[arg] = require(`./${arg}`)
+  return handlers
+}, {})
+
 function buildArgs (help) {
   const [h] = help.split('')
   return [`--${help}`, `-${h}`, `${help}`]
 }
 
 function Args ({ config, api, ui, alias }) {
-  this.config = config
-  this.api = api
-  this.ui = ui
-  this.alias = alias
-
+  this.deps = { config, api, ui, alias }
   this.cmd = {}
 }
 
@@ -34,35 +35,11 @@ Args.prototype.init = function init () {
 }
 
 Args.prototype.act = async function act () {
-  const { help, auth, install, uninstall, source } = this.cmd
-
-  if (help) {
-    this.ui.showHelp()
-  } else if (auth) {
-    const apiKey = await this.ui.authenticate({
-      haveApiKey: !!this.config.getApiKey(),
-      sendAuthEmail: this.api.sendAuthEmail.bind(this.api)
-    })
-    if (!apiKey) return
-    this.config.setApiKey(apiKey)
-  } else if (install) {
-    try {
-      await this.alias.aliasAll()
-    } catch (e) {
-      this.ui.error('Flossbank failed to install. Please contact support@flossbank.com for help.')
-      return
+  for (const arg of SUPPORTED_ARGS) {
+    if (this.cmd[arg] && typeof HANDLERS[arg] === 'function') {
+      await HANDLERS[arg](this.deps)
+      break
     }
-    this.ui.info('Flossbank successfully installed for supported package managers.')
-  } else if (uninstall) {
-    try {
-      await this.alias.unaliasAll()
-    } catch (e) {
-      this.ui.error('Flossbank failed to uninstall. Please contact support@flossbank.com for help.')
-      return
-    }
-    this.ui.info('Flossbank successfully uninstalled from supported package managers.')
-  } else if (source) {
-    console.log(this.alias.getSourceFilePath())
   }
 }
 
