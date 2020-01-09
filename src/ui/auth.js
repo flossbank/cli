@@ -13,7 +13,7 @@ exports.getEmail = async function getEmail () {
   return prompts({
     type: 'text',
     name: 'email',
-    message: 'Flossbank: please enter your email address to send your authentication token:'
+    message: 'Flossbank: please enter your email address to send your API key:'
   })
 }
 
@@ -21,6 +21,6 @@ exports.getAuthToken = async function getAuthToken () {
   return prompts({
     type: 'password',
     name: 'token',
-    message: 'Please enter the token from the link that was emailed to you:'
+    message: 'Please click the link in your email and enter the API key here:'
   })
 }
