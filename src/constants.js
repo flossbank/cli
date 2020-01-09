@@ -4,7 +4,7 @@ module.exports = {
   ROUTES: {
     GET_AD: 'ad/get',
     COMPLETE: 'session/complete',
-    SEND_AUTH: 'auth/send'
+    SEND_AUTH: 'user/register'
   },
   SUPPORTED_ARGS: ['help', 'auth', 'install', 'uninstall', 'source'],
   DEFAULT_CONFIG: {},
