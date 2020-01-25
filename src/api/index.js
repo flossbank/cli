@@ -31,7 +31,7 @@ Api.prototype.fetchAd = async function fetchAd () {
 }
 
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
-  const [url, options] = this.createRequest(ROUTES.GET_AD, 'POST', {
+  const [url, options] = this.createRequest(ROUTES.START, 'POST', {
     registry: 'npm',
     packages: this.packages
   })

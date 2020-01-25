@@ -2,7 +2,7 @@ module.exports = {
   INTERVAL: 5000,
   API_HOST: 'https://api.flossbank.com',
   ROUTES: {
-    GET_AD: 'ad/get',
+    START: 'session/start',
     COMPLETE: 'session/complete',
     SEND_AUTH: 'user/register'
   },

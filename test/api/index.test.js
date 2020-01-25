@@ -40,7 +40,7 @@ test('fetchAdBatch | creates request', async (t) => {
   sinon.stub(api, 'createRequest').returns(['url', {}])
   api.setTopLevelPackages(['abc'])
   await api.fetchAdBatch()
-  t.true(api.createRequest.calledWith(ROUTES.GET_AD, 'POST', {
+  t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {
     registry: 'npm',
     packages: ['abc']
   }))
