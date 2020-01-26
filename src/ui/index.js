@@ -94,7 +94,10 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     if (!shouldContinue) return
   }
   const { email } = await auth.getEmail()
-  if (!email) return
+  if (!email) {
+    auth.authenticationFailed()
+    return
+  }
   try {
     const res = await sendAuthEmail(email)
     if (!res.ok) throw new Error(`Could not request auth token email`)
@@ -107,7 +110,11 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     return
   }
   const { token } = await auth.getAuthToken()
-  console.log('Authentication succesful')
+  if (token) {
+    auth.authenticationSucceeded()
+  } else {
+    auth.authenticationFailed()
+  }
   return token
 }
 
