@@ -107,6 +107,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     return
   }
   const { token } = await auth.getAuthToken()
+  console.log('Authentication succesful')
   return token
 }
 
