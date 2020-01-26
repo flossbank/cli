@@ -11,6 +11,7 @@
 	},
 	"scripts": {
 		"postinstall": "flossbank install && source $(flossbank source)",
+		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm t && webpack",
 		"test": "standard && nyc ava"
 	},
