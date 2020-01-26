@@ -1,5 +1,5 @@
 const qs = require('querystring')
-const fetch = require('node-fetch').default
+const fetch = require('./fetch')
 const { API_HOST, ROUTES } = require('../constants')
 
 function Api ({ config }) {

@@ -1,5 +1,6 @@
 module.exports = {
   INTERVAL: 5000,
+  TIMEOUT: 10000,
   API_HOST: 'https://api.flossbank.com',
   ROUTES: {
     START: 'session/start',
