@@ -48,7 +48,10 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
 Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
   // can't use createRequest for this call since we necessarily have no api key yet
   return fetch(`${this.url}/${ROUTES.SEND_AUTH}`, {
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'x-requested-with': 'XmlHttpRequest',
+      'content-type': 'application/json'
+    },
     method: 'POST',
     body: JSON.stringify({ email })
   })
@@ -65,6 +68,7 @@ Api.prototype.createRequest = function createRequest (endpoint, method, payload)
   const body = Object.assign({}, { sessionId: this.sessionId }, payload)
   const options = {
     headers: {
+      'x-requested-with': 'XmlHttpRequest',
       'content-type': 'application/json',
       authorization: `Bearer ${this.getApiKey()}`
     },
