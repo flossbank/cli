@@ -26,10 +26,14 @@ exports.getAuthToken = async function getAuthToken () {
   })
 }
 
-exports.authenticationFailed = function authenticationFailed() {
-  console.log(`${chalk.red('✖')} ${chalk.white.bold('Authentication failed: please enter the valid api key granted through the link in your email')}`)
+exports.authenticationFailed = function authenticationFailed () {
+  console.log(`${chalk.red('✖')} ${chalk.white.bold('Authentication failed: invalid token')}`)
 }
 
-exports.authenticationSucceeded = function authenticationSucceeded() {
+exports.authenticationSucceeded = function authenticationSucceeded () {
   console.log(`${chalk.green('✔')} ${chalk.white.bold('Authentication successful')}`)
+}
+
+exports.isTokenTolerable = function isTokenTolerable (token) {
+  return typeof token === 'string' && /^[a-f0-9]+$/.test(token.trim())
 }
