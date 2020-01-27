@@ -13,7 +13,7 @@ const writeFileAsync = promisify(writeFile)
 const readFileAsync = promisify(readFile)
 
 function createAlias (cmd) {
-  return `alias ${cmd}="command -v ${PROJECT_NAME} >/dev/null 2>&1 && ${PROJECT_NAME} ${cmd} || ${cmd}"`
+  return `unalias ${cmd} 2>/dev/null;function ${cmd} () {command -v ${PROJECT_NAME} >/dev/null 2>&1 && ${PROJECT_NAME} ${cmd} $@ || command ${cmd} $@};`
 }
 
 function createRemoveAlias () {
