@@ -110,12 +110,12 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     return
   }
   const { token } = await auth.getAuthToken()
-  if (token) {
-    auth.authenticationSucceeded()
-  } else {
+  if (!token || !auth.isTokenTolerable(token)) {
     auth.authenticationFailed()
+    return
   }
-  return token
+  auth.authenticationSucceeded()
+  return token.trim()
 }
 
 Ui.prototype.setPmOutput = function setPmOutput (e, stdout, stderr) {
