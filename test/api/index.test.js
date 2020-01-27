@@ -1,12 +1,8 @@
 const test = require('ava')
 const sinon = require('sinon')
-const fetch = require('node-fetch')
+const nock = require('nock')
 const Api = require('../../src/api')
 const { ROUTES, API_HOST } = require('../../src/constants')
-
-test.before((t) => {
-  sinon.stub(fetch)
-})
 
 test.beforeEach((t) => {
   t.context.config = {
@@ -36,21 +32,32 @@ test('fetchAd | gets an ad', async (t) => {
 })
 
 test('fetchAdBatch | creates request', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/session/start')
+    .reply(200, JSON.stringify({
+      ads: [],
+      sessionId: 'abc'
+    }))
   const api = new Api({ config: t.context.config })
-  sinon.stub(api, 'createRequest').returns(['url', {}])
+  sinon.spy(api, 'createRequest')
   api.setTopLevelPackages(['abc'])
   await api.fetchAdBatch()
   t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {
     registry: 'npm',
     packages: ['abc']
   }))
+  scope.done()
 })
 
 test('completeSession | creates request', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/session/complete')
+    .reply(200)
   const api = new Api({ config: t.context.config })
-  sinon.stub(api, 'createRequest').returns(['url', {}])
+  sinon.spy(api, 'createRequest')
   await api.completeSession()
   t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', { seen: api.seen }))
+  scope.done()
 })
 
 test('createRequest | no key throws', async (t) => {
@@ -68,4 +75,16 @@ test('createRequest | creates request', async (t) => {
   t.deepEqual(options.headers['content-type'], 'application/json')
   t.deepEqual(options.method, 'POST')
   t.deepEqual(options.body, '{"a":1}')
+})
+
+test('long request times out', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/session/complete')
+    .delay(11000)
+    .reply(200)
+  const api = new Api({ config: t.context.config })
+  sinon.spy(api, 'createRequest')
+  await t.throwsAsync(api.completeSession())
+  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', { seen: api.seen }))
+  scope.done()
 })

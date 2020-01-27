@@ -2,3 +2,7 @@
 // and is meant for testing (since the bin.js in the parent dir
 // directly calls the minified bundle)
 require('.')()
+
+try {
+  require('update-notifier')({ pkg: require('../package.json') }).notify()
+} catch (_) {}
