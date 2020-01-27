@@ -1,4 +1,5 @@
 const prompts = require('prompts')
+const chalk = require('chalk')
 
 exports.confirm = async function confirm () {
   return prompts({
@@ -23,4 +24,12 @@ exports.getAuthToken = async function getAuthToken () {
     name: 'token',
     message: 'Please click the link in your email and enter the API key here:'
   })
+}
+
+exports.authenticationFailed = function authenticationFailed() {
+  console.log(`${chalk.red('✖')} ${chalk.white.bold('Authentication failed: please enter the valid api key granted through the link in your email')}`)
+}
+
+exports.authenticationSucceeded = function authenticationSucceeded() {
+  console.log(`${chalk.green('✔')} ${chalk.white.bold('Authentication successful')}`)
 }
