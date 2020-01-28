@@ -1,6 +1,7 @@
 const { readFile } = require('fs')
 const { promisify } = require('util')
 const path = require('path')
+const debug = require('debug')('flossbank')
 
 const readFileAsync = promisify(readFile)
 
@@ -14,7 +15,9 @@ module.exports = async () => {
       'utf8'
     )
     packageJson = JSON.parse(packageJsonFile) || DEFAULT_PKG
-  } catch (_) {} // we don't care
+  } catch (e) {
+    debug('could not read package json: %O', e)
+  }
   const deps = []
   for (const pkgName in packageJson.dependencies) {
     deps.push(`${pkgName}@${packageJson.dependencies[pkgName]}`)

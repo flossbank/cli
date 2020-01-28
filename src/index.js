@@ -4,6 +4,7 @@ const Ui = require('./ui')
 const Pm = require('./pm')
 const Args = require('./args')
 const Alias = require('./util/alias')
+const debug = require('debug')('flossbank')
 
 module.exports = async () => {
   const config = new Config()
@@ -16,44 +17,63 @@ module.exports = async () => {
     process.exit(e ? 1 : 0)
   }
 
+  debug('initializing arguments')
   const { hasArgs } = args.init()
+  debug('have arguments: %o', !!hasArgs)
 
+  debug('initializing package manager')
   const { supportedPm, adsPm, noAdsPm } = await pm.init()
+  debug('supportedPm: %o', supportedPm)
 
   if (!supportedPm && !hasArgs) {
+    debug('unsupported pm and no arguments; exiting')
     ui.error('Flossbank: unsupported package manager.')
     process.exit(1)
   }
 
   if (!pm.shouldShowAds() && !hasArgs) {
+    debug('no args and pm determined we should not show ads; running in passthru mode')
     return noAdsPm(exit)
   }
 
   const haveApiKey = config.getApiKey()
 
-  if (hasArgs) return args.act()
+  if (hasArgs) {
+    debug('have flossbank-specific args; running args logic')
+    return args.act()
+  }
 
   if (!haveApiKey) {
+    debug('have no api key from config; running authentication flow')
     const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
     if (!apiKey) {
+      debug('did not get a valid api key back from authentication flow; running in passthru mode')
       // something went wrong with getting the key
       // pass control to pm and leave
       return noAdsPm(exit)
     }
     await config.setApiKey(apiKey)
+    debug('persisted api key in config')
   }
 
-  api.setTopLevelPackages(await pm.getTopLevelPackages())
+  const topLevelPackages = await pm.getTopLevelPackages()
+  api.setTopLevelPackages(topLevelPackages)
+  debug('setting top-level packages: %O', topLevelPackages)
 
   ui.setPmCmd(pm.getPmCmd())
     .setCallback(async () => {
       try {
+        debug('completing ad viewing session')
         await api.completeSession()
-      } catch (_) {}
+      } catch (e) {
+        debug('failed to complete session: %O', e)
+      }
     })
     .startAds({ fetchAd: api.fetchAd.bind(api) })
 
+  debug('running package manager with ads')
   adsPm((e, stdout, stderr) => {
+    debug('package manager execution complete')
     ui.setPmOutput(e, stdout, stderr)
   })
 }

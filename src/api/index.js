@@ -1,4 +1,5 @@
 const qs = require('querystring')
+const debug = require('debug')('flossbank')
 const fetch = require('./fetch')
 const { API_HOST, ROUTES } = require('../constants')
 
@@ -20,6 +21,7 @@ Api.prototype.setTopLevelPackages = function setTopLevelPackages (pkgs) {
 
 Api.prototype.fetchAd = async function fetchAd () {
   if (!this.unseen.length) {
+    debug('unseen ads list is empty, requesting more')
     await this.fetchAdBatch()
   }
   const ad = this.unseen.pop()
@@ -41,7 +43,9 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
     const json = await res.json()
     ads = json.ads
     this.sessionId = json.sessionId
-  } catch (_) { }
+  } catch (e) {
+    debug('could not fetch ads: %O', e)
+  }
   this.unseen.push(...ads)
 }
 
@@ -59,6 +63,7 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
 
 Api.prototype.completeSession = async function completeSession () {
   const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: this.seen })
+  debug('completing session with these ad ids: %O', this.seen)
   return fetch(url, options)
 }
 
