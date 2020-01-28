@@ -1,5 +1,4 @@
 const chalk = require('chalk')
-const prompts = require('prompts')
 const diffy = require('diffy')()
 const auth = require('./auth')
 const format = require('./format')
@@ -72,20 +71,11 @@ Ui.prototype.failure = async function failure () {
 Ui.prototype.showCompletion = async function showCompletion () {
   // clear ad and close diffy
   clearInterval(this.renderInterval)
-  const status = this.pmError ? 'failed' : 'completed successfully'
-  const { shouldShowOutput } = await prompts({
-    type: 'confirm',
-    name: 'shouldShowOutput',
-    message: `${this.pmCmd.split(' ').shift()} install ${status}. View output?`,
-    initial: !!this.pmError
-  })
   diffy.render(() => '')
   diffy.destroy()
 
-  if (shouldShowOutput) {
-    if (this.pmStdout) console.log(this.pmStdout)
-    if (this.pmStderr) console.error(this.pmStderr)
-  }
+  if (this.pmStdout) console.log(this.pmStdout)
+  if (this.pmStderr) console.error(this.pmStderr)
 }
 
 Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail }) {
