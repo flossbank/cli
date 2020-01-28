@@ -17,6 +17,7 @@ Api.prototype.getApiKey = function getApiKey () {
 
 Api.prototype.setTopLevelPackages = function setTopLevelPackages (pkgs) {
   this.packages = pkgs
+  return this
 }
 
 Api.prototype.fetchAd = async function fetchAd () {
@@ -47,6 +48,7 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
     debug('could not fetch ads: %O', e)
   }
   this.unseen.push(...ads)
+  return this.unseen.length
 }
 
 Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
