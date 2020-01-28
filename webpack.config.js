@@ -1,5 +1,6 @@
 const path = require('path')
 const TerserPlugin = require('terser-webpack-plugin')
+const webpack = require('webpack')
 
 module.exports = {
   mode: 'production',
@@ -7,9 +8,26 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'flossbank.bundle.js',
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2',
+    pathinfo: false
   },
   optimization: {
+    namedModules: false,
+    namedChunks: false,
+    nodeEnv: false,
+    flagIncludedChunks: true,
+    occurrenceOrder: true,
+    sideEffects: true,
+    usedExports: true,
+    splitChunks: {
+      hidePathInfo: true,
+      minSize: 30000,
+      maxAsyncRequests: 5,
+      maxInitialRequests: 3
+    },
+    noEmitOnErrors: true,
+    checkWasmTypes: true,
+    minimize: true,
     // concatenateModules: true breaks AbortSignal (node-fetch)
     concatenateModules: false,
     minimizer: [
@@ -21,5 +39,9 @@ module.exports = {
       })
     ]
   },
+  plugins: [
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    new webpack.NoEmitOnErrorsPlugin()
+  ],
   target: 'node'
 }
