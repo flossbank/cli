@@ -36,6 +36,11 @@ module.exports = async () => {
     return noAdsPm(exit)
   }
 
+  if (process.env.FLOSSBANK_DISABLE) {
+    debug('flossbank manually disabled; running in passthru mode')
+    return noAdsPm(exit)
+  }
+
   const haveApiKey = config.getApiKey()
 
   if (hasArgs) {
@@ -57,8 +62,21 @@ module.exports = async () => {
   }
 
   const topLevelPackages = await pm.getTopLevelPackages()
-  api.setTopLevelPackages(topLevelPackages)
-  debug('setting top-level packages: %O', topLevelPackages)
+  let initialAdBatchSize = 0
+  try {
+    debug('setting top-level packages: %O', topLevelPackages)
+    initialAdBatchSize = await api
+      .setTopLevelPackages(topLevelPackages)
+      .fetchAdBatch()
+  } catch (e) {
+    debug('failed to fetch initial ad batch; running in passthru mode: %O', e)
+    return noAdsPm(exit)
+  }
+
+  if (initialAdBatchSize < 1) {
+    debug('api returned empty list of ads; running in passthru mode')
+    return noAdsPm(exit)
+  }
 
   ui.setPmCmd(pm.getPmCmd())
     .setCallback(async () => {
