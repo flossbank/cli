@@ -1,5 +1,6 @@
 const chalk = require('chalk')
 const diffy = require('diffy')()
+const debug = require('debug')('flossbank')
 const auth = require('./auth')
 const format = require('./format')
 const { INTERVAL, USAGE } = require('../constants')
@@ -34,7 +35,7 @@ Ui.prototype.getExecString = function getExecString () {
 }
 
 Ui.prototype.startAds = async function startAds ({ fetchAd }) {
-  if (!this.init) {
+  if (!this.init && !debug.enabled) {
     this.init = true
     diffy.render(() => this.getExecString())
     this.renderInterval = setInterval(() => {
@@ -46,13 +47,18 @@ Ui.prototype.startAds = async function startAds ({ fetchAd }) {
     let ad
     try {
       ad = await fetchAd()
-    } catch (_) {
+    } catch (e) {
+      debug('failed to fetch ad: %O', e)
       return this.failure()
     }
     if (!ad) return this.failure()
 
     const formattedAd = format(ad)
-    diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
+    if (!debug.enabled) {
+      diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
+    } else {
+      debug('showing ad: %O', ad)
+    }
     setTimeout(() => this.startAds({ fetchAd }), this.interval)
   } else {
     this.doneShowingAds()
@@ -62,6 +68,7 @@ Ui.prototype.startAds = async function startAds ({ fetchAd }) {
 
 Ui.prototype.failure = async function failure () {
   if (!this.pmDone) {
+    debug('package manager is not done yet; waiting to show completion message')
     setTimeout(() => this.failure(), 500)
     return
   }
@@ -69,10 +76,13 @@ Ui.prototype.failure = async function failure () {
 }
 
 Ui.prototype.showCompletion = async function showCompletion () {
-  // clear ad and close diffy
-  clearInterval(this.renderInterval)
-  diffy.render(() => '')
-  diffy.destroy()
+  debug('package manager complete; printing output')
+  if (!debug.enabled) {
+    // clear ad and close diffy
+    clearInterval(this.renderInterval)
+    diffy.render(() => '')
+    diffy.destroy()
+  }
 
   if (this.pmStdout) console.log(this.pmStdout)
   if (this.pmStderr) console.error(this.pmStderr)
@@ -85,13 +95,18 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   }
   const { email } = await auth.getEmail()
   if (!email) {
+    debug('did not get an email; cannot continue authentication flow')
     auth.authenticationFailed()
     return
   }
   try {
     const res = await sendAuthEmail(email)
-    if (!res.ok) throw new Error(`Could not request auth token email`)
+    if (!res.ok) {
+      debug('got bad status code %o when requesting authentication email', res.statusCode)
+      throw new Error(`Could not request auth token email`)
+    }
   } catch (e) {
+    debug('failed to request authentication email: %O', e)
     console.error(
       chalk.red(
         'Unable to request authentication token. Please email support@flossbank.com for support.'
@@ -101,6 +116,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   }
   const { token } = await auth.getAuthToken()
   if (!token || !auth.isTokenTolerable(token)) {
+    debug('got bad token from authentication flow: %o', token)
     auth.authenticationFailed()
     return
   }
