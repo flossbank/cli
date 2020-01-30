@@ -136,6 +136,10 @@ Ui.prototype.showHelp = function showHelp () {
   console.log(`  Flossbank v${version}\n${USAGE}`)
 }
 
+Ui.prototype.showVersion = function showVersion () {
+  console.log(version)
+}
+
 Ui.prototype.info = function info (msg) {
   console.log(chalk.white.bold(msg))
 }
