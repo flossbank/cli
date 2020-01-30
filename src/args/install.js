@@ -6,4 +6,6 @@ module.exports = async ({ alias, ui }) => {
     return
   }
   ui.info('Flossbank successfully installed for supported package managers.')
+  ui.info('\nClose and reopen your terminal to start using Flossbank or run the following to use it now:')
+  ui.info('\t. $(flossbank source)')
 }

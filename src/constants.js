@@ -7,7 +7,7 @@ module.exports = {
     COMPLETE: 'session/complete',
     SEND_AUTH: 'user/register'
   },
-  SUPPORTED_ARGS: ['help', 'auth', 'install', 'uninstall', 'source'],
+  SUPPORTED_ARGS: ['help', 'version', 'auth', 'install', 'uninstall', 'source'],
   DEFAULT_CONFIG: {},
   PROJECT_NAME: 'flossbank',
   CONFIG_API_KEY: 'apiKey',

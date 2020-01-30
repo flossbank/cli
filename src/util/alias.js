@@ -34,7 +34,7 @@ Alias.prototype.getSourceFilePath = function getSourceFilePath () {
 }
 
 Alias.prototype.getSourceCommand = function getSourceCommand () {
-  return ['source', this.getSourceFilePath()].join(' ')
+  return ['.', this.getSourceFilePath()].join(' ')
 }
 
 Alias.prototype.list = function list () {
