@@ -32,7 +32,7 @@ Ui.prototype.setCallback = function setCallback (cb) {
 
 Ui.prototype.getExecString = function getExecString () {
   const suffix = this.pmDone ? '...done!' : '.'.repeat(this.runtime % 6)
-  return `Executing ${chalk.bold(this.pmCmd)}${suffix}`
+  return `Flossbank is executing ${chalk.bold(this.pmCmd)}${suffix}`
 }
 
 Ui.prototype.startAds = async function startAds ({ fetchAd }) {
