@@ -4,6 +4,7 @@ const debug = require('debug')('flossbank')
 const auth = require('./auth')
 const format = require('./format')
 const { INTERVAL, USAGE } = require('../constants')
+const { version } = require('../../package.json')
 
 function Ui () {
   this.interval = INTERVAL
@@ -132,11 +133,11 @@ Ui.prototype.setPmOutput = function setPmOutput (e, stdout, stderr) {
 }
 
 Ui.prototype.showHelp = function showHelp () {
-  console.log(USAGE)
+  console.log(`  Flossbank v${version}\n${USAGE}`)
 }
 
 Ui.prototype.info = function info (msg) {
-  console.log(msg)
+  console.log(chalk.white.bold(msg))
 }
 
 Ui.prototype.warn = function warn (msg) {
