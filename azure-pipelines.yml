@@ -1,15 +1,47 @@
 jobs:
-# - job: Windows
-#   pool:
-#     vmImage: 'windows-latest'
-#   steps:
-#   - template: ci/windows.yml
+- job: Windows
+  pool:
+    vmImage: 'windows-latest'
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_9_x:
+        node_version: 9.x
+      node_10_x:
+        node_version: 10.x
+      node_11_x:
+        node_version: 11.x
+      node_12_x:
+        node_version: 12.x
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+  - script: npm install
+  - template: ci/windows.yml
 
-# - job: Linux
-#   pool:
-#     vmImage: 'ubuntu-latest'
-#   steps:
-#   - template: ci/linux.yml
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_9_x:
+        node_version: 9.x
+      node_10_x:
+        node_version: 10.x
+      node_11_x:
+        node_version: 11.x
+      node_12_x:
+        node_version: 12.x
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+  - script: npm install
+  - template: ci/linux.yml
 
 - job: Mac
   pool:
@@ -30,7 +62,7 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm it
+  - script: npm install
   - template: ci/mac.yml
 
 trigger:

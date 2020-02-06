@@ -1,4 +1,4 @@
 steps:
 - script: |
-    node bin.js help
-  displayName: Print Flossbank help
+    node bin.js version
+  displayName: Print Flossbank version
