@@ -30,7 +30,7 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm ci
+  - script: npm it
   - template: ci/mac.yml
 
 trigger:

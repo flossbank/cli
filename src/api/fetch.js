@@ -7,8 +7,10 @@ module.exports = async function fetch (url, opts) {
   const timeout = setTimeout(() => {
     controller.abort()
   }, TIMEOUT)
-  return nf(url, Object.assign({}, opts, { signal: controller.signal }))
-    .finally(() => {
-      clearTimeout(timeout)
-    })
+  try {
+    const res = await nf(url, Object.assign({}, opts, { signal: controller.signal }))
+    return res
+  } finally {
+    clearTimeout(timeout)
+  }
 }
