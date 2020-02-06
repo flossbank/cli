@@ -1,0 +1,4 @@
+steps:
+- script: |
+    node bin.js help
+  displayName: Print Flossbank help
