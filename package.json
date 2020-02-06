@@ -10,7 +10,7 @@
 		"node": ">=8"
 	},
 	"scripts": {
-		"postinstall": "flossbank install",
+		"postinstall": "flossbank install || exit 0",
 		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm t && webpack",
 		"test": "standard && nyc ava"

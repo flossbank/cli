@@ -1,16 +1,37 @@
+jobs:
+# - job: Windows
+#   pool:
+#     vmImage: 'windows-latest'
+#   steps:
+#   - template: ci/windows.yml
+
+# - job: Linux
+#   pool:
+#     vmImage: 'ubuntu-latest'
+#   steps:
+#   - template: ci/linux.yml
+
+- job: Mac
+  pool:
+    vmImage: 'macOS-latest'
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_9_x:
+        node_version: 9.x
+      node_10_x:
+        node_version: 10.x
+      node_11_x:
+        node_version: 11.x
+      node_12_x:
+        node_version: 12.x
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+  - script: npm ci
+  - template: ci/mac.yml
+
 trigger:
-- master
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+  - master

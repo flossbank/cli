@@ -1,0 +1,3 @@
+# just print the help msg
+- script |
+  node bin.js help
