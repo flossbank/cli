@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const diffy = require('diffy')()
+const Diffy = require('diffy')
 const debug = require('debug')('flossbank')
 const auth = require('./auth')
 const format = require('./format')
@@ -17,7 +17,7 @@ function Ui () {
   this.doneShowingAds = () => {}
 
   this.runtime = 0
-  this.init = false
+  this.diffy = null
 }
 
 Ui.prototype.setPmCmd = function setPmCmd (pmCmd) {
@@ -36,8 +36,9 @@ Ui.prototype.getExecString = function getExecString () {
 }
 
 Ui.prototype.startAds = async function startAds ({ fetchAd }) {
-  if (!this.init && !debug.enabled) {
-    this.init = true
+  if (!this.diffy && !debug.enabled) {
+    this.diffy = Diffy()
+    const diffy = this.diffy
     diffy.render(() => this.getExecString())
     this.renderInterval = setInterval(() => {
       this.runtime++
@@ -56,7 +57,7 @@ Ui.prototype.startAds = async function startAds ({ fetchAd }) {
 
     const formattedAd = format(ad)
     if (!debug.enabled) {
-      diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
+      this.diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
     } else {
       debug('showing ad: %O', ad)
     }
@@ -81,8 +82,8 @@ Ui.prototype.showCompletion = async function showCompletion () {
   if (!debug.enabled) {
     // clear ad and close diffy
     clearInterval(this.renderInterval)
-    diffy.render(() => '')
-    diffy.destroy()
+    this.diffy.render(() => '')
+    this.diffy.destroy()
   }
 
   if (this.pmStdout) console.log(this.pmStdout)
