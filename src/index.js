@@ -61,12 +61,16 @@ module.exports = async () => {
     debug('persisted api key in config')
   }
 
-  const topLevelPackages = await pm.getTopLevelPackages()
   let initialAdBatchSize = 0
   try {
+    const topLevelPackages = await pm.getTopLevelPackages()
+    const registry = await pm.getRegistry()
+
     debug('setting top-level packages: %O', topLevelPackages)
+    debug('setting registry to %O', registry)
     initialAdBatchSize = await api
       .setTopLevelPackages(topLevelPackages)
+      .setRegistry(registry)
       .fetchAdBatch()
   } catch (e) {
     debug('failed to fetch initial ad batch; running in passthru mode: %O', e)

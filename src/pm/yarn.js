@@ -47,3 +47,11 @@ exports.getTopLevelPackages = async function () {
 
   return packages
 }
+
+exports.getRegistry = async function (cb) {
+  execFile('command', ['yarn', 'config', 'get', 'registry'], cb)
+}
+
+exports.getLanguage = async function () {
+  return 'javascript'
+}

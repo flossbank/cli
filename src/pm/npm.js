@@ -37,3 +37,11 @@ exports.getTopLevelPackages = async function () {
   // this is the `npm install package1...packageN` case
   return args._.slice(1) // args._[0] === 'install'
 }
+
+exports.getRegistry = async function (cb) {
+  execFile('command', ['npm', 'config', 'get', 'registry'], cb)
+}
+
+exports.getLanguage = async function () {
+  return 'javascript'
+}

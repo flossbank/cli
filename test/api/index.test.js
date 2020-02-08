@@ -41,9 +41,12 @@ test('fetchAdBatch | creates request', async (t) => {
   const api = new Api({ config: t.context.config })
   sinon.spy(api, 'createRequest')
   api.setTopLevelPackages(['abc'])
+  api.setLanguage('javascript')
+  api.setRegistry('npm')
   await api.fetchAdBatch()
   t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {
     registry: 'npm',
+    language: 'javascript',
     packages: ['abc']
   }))
   scope.done()
