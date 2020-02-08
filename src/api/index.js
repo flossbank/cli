@@ -6,7 +6,12 @@ const { API_HOST, ROUTES } = require('../constants')
 function Api ({ config }) {
   this.url = API_HOST
   this.config = config
+
+  // for session start
   this.packages = null
+  this.registry = null
+  this.language = null
+
   this.unseen = []
   this.seen = []
 }
@@ -17,6 +22,16 @@ Api.prototype.getApiKey = function getApiKey () {
 
 Api.prototype.setTopLevelPackages = function setTopLevelPackages (pkgs) {
   this.packages = pkgs
+  return this
+}
+
+Api.prototype.setRegistry = function setRegistry (registry) {
+  this.registry = registry
+  return this
+}
+
+Api.prototype.setLanguage = function setLanguage (language) {
+  this.language = language
   return this
 }
 
@@ -35,7 +50,8 @@ Api.prototype.fetchAd = async function fetchAd () {
 
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   const [url, options] = this.createRequest(ROUTES.START, 'POST', {
-    registry: 'npm',
+    registry: this.registry,
+    language: this.language,
     packages: this.packages
   })
   let ads = []
@@ -47,7 +63,7 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   } catch (e) {
     debug('could not fetch ads: %O', e)
   }
-  this.unseen.push(...ads)
+  this.unseen.push(...ads || [])
   return this.unseen.length
 }
 

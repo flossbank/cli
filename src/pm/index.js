@@ -40,4 +40,18 @@ Pm.prototype.getTopLevelPackages = async function getTopLevelPackages () {
   return this.pm.getTopLevelPackages()
 }
 
+Pm.prototype.getRegistry = async function getRegistry () {
+  return new Promise((resolve, reject) => {
+    this.pm.getRegistry((e, stdout) => {
+      if (e) return reject(e)
+      if (!stdout) return reject(new Error('failed to determine registry'))
+      return resolve(stdout.trim())
+    })
+  })
+}
+
+Pm.prototype.getLanguage = async function getLanguage () {
+  return this.pm.getLanguage()
+}
+
 module.exports = Pm
