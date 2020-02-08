@@ -65,12 +65,15 @@ module.exports = async () => {
   try {
     const topLevelPackages = await pm.getTopLevelPackages()
     const registry = await pm.getRegistry()
+    const language = await pm.getLanguage()
 
     debug('setting top-level packages: %O', topLevelPackages)
     debug('setting registry to %O', registry)
+    debug('setting language to %O', language)
     initialAdBatchSize = await api
       .setTopLevelPackages(topLevelPackages)
       .setRegistry(registry)
+      .setLanguage(language)
       .fetchAdBatch()
   } catch (e) {
     debug('failed to fetch initial ad batch; running in passthru mode: %O', e)
