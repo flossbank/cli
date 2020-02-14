@@ -28,7 +28,7 @@ test('fetchAd | gets an ad', async (t) => {
   api.unseen = [{ id: 123 }]
   const ad = await api.fetchAd()
   t.deepEqual(ad.id, 123)
-  t.deepEqual(api.seen, [123])
+  t.deepEqual(api.seen, [{ id: 123 }])
 })
 
 test('fetchAdBatch | creates request', async (t) => {
@@ -59,7 +59,9 @@ test('completeSession | creates request', async (t) => {
   const api = new Api({ config: t.context.config })
   sinon.spy(api, 'createRequest')
   await api.completeSession()
-  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', { seen: api.seen }))
+  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
+    seen: api.seen.map(ad => ad.id)
+  }))
   scope.done()
 })
 
@@ -88,6 +90,8 @@ test('long request times out', async (t) => {
   const api = new Api({ config: t.context.config })
   sinon.spy(api, 'createRequest')
   await t.throwsAsync(api.completeSession())
-  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', { seen: api.seen }))
+  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
+    seen: api.seen.map(ad => ad.id)
+  }))
   scope.done()
 })

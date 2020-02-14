@@ -3,6 +3,7 @@ const Diffy = require('diffy')
 const debug = require('debug')('flossbank')
 const auth = require('./auth')
 const format = require('./format')
+const summary = require('./summary')
 const { INTERVAL, USAGE } = require('../constants')
 const { version } = require('../../package.json')
 
@@ -14,7 +15,9 @@ function Ui () {
   this.pmError = null
 
   this.pmCmd = null
-  this.doneShowingAds = () => {}
+  this.getSeenAds = () => []
+  this.doneShowingAds = async () => {}
+  this.fetchAd = async () => {}
 
   this.runtime = 0
   this.diffy = null
@@ -30,12 +33,22 @@ Ui.prototype.setCallback = function setCallback (cb) {
   return this
 }
 
+Ui.prototype.setGetSeenAds = function setGetSeenAds (fn) {
+  this.getSeenAds = fn
+  return this
+}
+
+Ui.prototype.setFetchAd = function setFetchAd (fn) {
+  this.fetchAd = fn
+  return this
+}
+
 Ui.prototype.getExecString = function getExecString () {
   const suffix = this.pmDone ? '...done!' : '.'.repeat(this.runtime % 6)
   return `Flossbank is executing ${chalk.bold(this.pmCmd)}${suffix}`
 }
 
-Ui.prototype.startAds = async function startAds ({ fetchAd }) {
+Ui.prototype.startAds = async function startAds () {
   if (!this.diffy && !debug.enabled) {
     this.diffy = Diffy()
     const diffy = this.diffy
@@ -48,7 +61,7 @@ Ui.prototype.startAds = async function startAds ({ fetchAd }) {
   if (!this.pmDone) {
     let ad
     try {
-      ad = await fetchAd()
+      ad = await this.fetchAd()
     } catch (e) {
       debug('failed to fetch ad: %O', e)
       return this.failure()
@@ -61,7 +74,7 @@ Ui.prototype.startAds = async function startAds ({ fetchAd }) {
     } else {
       debug('showing ad: %O', ad)
     }
-    setTimeout(() => this.startAds({ fetchAd }), this.interval)
+    setTimeout(() => this.startAds(), this.interval)
   } else {
     this.doneShowingAds()
     this.showCompletion()
@@ -86,8 +99,11 @@ Ui.prototype.showCompletion = async function showCompletion () {
     this.diffy.destroy()
   }
 
+  const adsSummary = summary(this.getSeenAds())
+
   if (this.pmStdout) console.log(this.pmStdout)
   if (this.pmStderr) console.error(this.pmStderr)
+  if (adsSummary) console.log(adsSummary)
 }
 
 Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail }) {
