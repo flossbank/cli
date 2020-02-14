@@ -94,7 +94,9 @@ module.exports = async () => {
         debug('failed to complete session: %O', e)
       }
     })
-    .startAds({ fetchAd: api.fetchAd.bind(api) })
+    .setFetchAd(async () => api.fetchAd())
+    .setGetSeenAds(() => api.getSeenAds())
+    .startAds()
 
   debug('running package manager with ads')
   adsPm((e, stdout, stderr) => {

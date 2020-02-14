@@ -35,6 +35,10 @@ Api.prototype.setLanguage = function setLanguage (language) {
   return this
 }
 
+Api.prototype.getSeenAds = function getSeenAds () {
+  return this.seen.slice()
+}
+
 Api.prototype.fetchAd = async function fetchAd () {
   if (!this.unseen.length) {
     debug('unseen ads list is empty, requesting more')
@@ -44,7 +48,7 @@ Api.prototype.fetchAd = async function fetchAd () {
   if (!ad) {
     throw new Error('no ad available')
   }
-  this.seen.push(ad.id)
+  this.seen.push(ad)
   return ad
 }
 
@@ -80,8 +84,9 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
 }
 
 Api.prototype.completeSession = async function completeSession () {
-  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: this.seen })
-  debug('completing session with these ad ids: %O', this.seen)
+  const seenAdIds = this.seen.map(ad => ad.id)
+  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds })
+  debug('completing session with these ad ids: %O', seenAdIds)
   return fetch(url, options)
 }
 
