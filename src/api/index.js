@@ -11,6 +11,7 @@ function Api ({ config }) {
   this.packages = null
   this.registry = null
   this.language = null
+  this.metadata = null
 
   this.unseen = []
   this.seen = []
@@ -35,6 +36,11 @@ Api.prototype.setLanguage = function setLanguage (language) {
   return this
 }
 
+Api.prototype.setMetadata = function setMetadata (metadata) {
+  this.metadata = metadata
+  return this
+}
+
 Api.prototype.getSeenAds = function getSeenAds () {
   return this.seen.slice()
 }
@@ -56,7 +62,8 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   const [url, options] = this.createRequest(ROUTES.START, 'POST', {
     registry: this.registry,
     language: this.language,
-    packages: this.packages
+    packages: this.packages,
+    metadata: this.metadata
   })
   let ads = []
   try {

@@ -43,11 +43,13 @@ test('fetchAdBatch | creates request', async (t) => {
   api.setTopLevelPackages(['abc'])
   api.setLanguage('javascript')
   api.setRegistry('npm')
+  api.setMetadata({ packageManagerVersion: 'npm@1.1.1' })
   await api.fetchAdBatch()
   t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {
     registry: 'npm',
     language: 'javascript',
-    packages: ['abc']
+    packages: ['abc'],
+    metadata: { packageManagerVersion: 'npm@1.1.1' }
   }))
   scope.done()
 })

@@ -49,9 +49,25 @@ exports.getTopLevelPackages = async function () {
 }
 
 exports.getRegistry = async function (cb) {
-  execFile('command', ['yarn', 'config', 'get', 'registry'], cb)
+  return new Promise((resolve, reject) => {
+    execFile('command', ['yarn', 'config', 'get', 'registry'], (e, stdout) => {
+      if (e) return reject(e)
+      if (!stdout) return reject(new Error('failed to determine registry'))
+      return resolve(stdout.trim())
+    })
+  })
 }
 
 exports.getLanguage = async function () {
   return 'javascript'
+}
+
+exports.getVersion = async function () {
+  return new Promise((resolve, reject) => {
+    execFile('command', ['yarn', '-v'], (e, stdout) => {
+      if (e) return reject(e)
+      if (!stdout) return reject(new Error('failed to determine yarn version'))
+      return resolve(`yarn@${stdout.trim()}`)
+    })
+  })
 }

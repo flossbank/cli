@@ -1,10 +1,11 @@
+const debug = require('debug')('flossbank')
 const Api = require('./api')
 const Config = require('./config')
 const Ui = require('./ui')
 const Pm = require('./pm')
 const Args = require('./args')
 const Alias = require('./util/alias')
-const debug = require('debug')('flossbank')
+const { version } = require('../package.json')
 
 module.exports = async () => {
   const config = new Config()
@@ -66,14 +67,20 @@ module.exports = async () => {
     const topLevelPackages = await pm.getTopLevelPackages()
     const registry = await pm.getRegistry()
     const language = await pm.getLanguage()
+    const pmVersion = await pm.getVersion()
 
     debug('setting top-level packages: %O', topLevelPackages)
     debug('setting registry to %O', registry)
     debug('setting language to %O', language)
+    debug('setting version to %O', pmVersion)
     initialAdBatchSize = await api
       .setTopLevelPackages(topLevelPackages)
       .setRegistry(registry)
       .setLanguage(language)
+      .setMetadata({
+        packageManagerVersion: pmVersion,
+        flossbankVersion: version
+      })
       .fetchAdBatch()
   } catch (e) {
     debug('failed to fetch initial ad batch; running in passthru mode: %O', e)
