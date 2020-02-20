@@ -79,7 +79,7 @@ Alias.prototype.addToProfile = async function addToProfile () {
   if (!profilesToUpdate.length) return
 
   return Promise.all(
-    profilesToUpdate.map(prof => writeFileAsync(prof.path, prof.profile + '\n\n' + this.getSourceCommand()))
+    profilesToUpdate.map(prof => writeFileAsync(prof.path, prof.profile + '\n\n' + this.getSourceCommand() + '\n'))
   )
 }
 
