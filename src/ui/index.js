@@ -121,7 +121,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     const res = await sendAuthEmail(email)
     if (!res.ok) {
       debug('got bad status code %o when requesting authentication email', res.statusCode)
-      throw new Error(`Could not request auth token email`)
+      throw new Error('Could not request auth token email')
     }
   } catch (e) {
     debug('failed to request authentication email: %O', e)
