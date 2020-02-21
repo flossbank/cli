@@ -7,38 +7,12 @@ function Api ({ config }) {
   this.url = API_HOST
   this.config = config
 
-  // for session start
-  this.packages = null
-  this.registry = null
-  this.language = null
-  this.metadata = null
-
   this.unseen = []
   this.seen = []
 }
 
 Api.prototype.getApiKey = function getApiKey () {
   return this.config.getApiKey()
-}
-
-Api.prototype.setTopLevelPackages = function setTopLevelPackages (pkgs) {
-  this.packages = pkgs
-  return this
-}
-
-Api.prototype.setRegistry = function setRegistry (registry) {
-  this.registry = registry
-  return this
-}
-
-Api.prototype.setLanguage = function setLanguage (language) {
-  this.language = language
-  return this
-}
-
-Api.prototype.setMetadata = function setMetadata (metadata) {
-  this.metadata = metadata
-  return this
 }
 
 Api.prototype.getSeenAds = function getSeenAds () {
@@ -59,12 +33,7 @@ Api.prototype.fetchAd = async function fetchAd () {
 }
 
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
-  const [url, options] = this.createRequest(ROUTES.START, 'POST', {
-    registry: this.registry,
-    language: this.language,
-    packages: this.packages,
-    metadata: this.metadata
-  })
+  const [url, options] = this.createRequest(ROUTES.START, 'POST', {})
   let ads = []
   try {
     const res = await fetch(url, options)
@@ -90,9 +59,10 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
   })
 }
 
-Api.prototype.completeSession = async function completeSession () {
+Api.prototype.completeSession = async function completeSession (sessionData = {}) {
+  debug('completeing session with session data: %O', sessionData)
   const seenAdIds = this.seen.map(ad => ad.id)
-  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds })
+  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds, ...sessionData })
   debug('completing session with these ad ids: %O', seenAdIds)
   return fetch(url, options)
 }

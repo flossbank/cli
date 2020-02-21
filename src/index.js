@@ -64,24 +64,7 @@ module.exports = async () => {
 
   let initialAdBatchSize = 0
   try {
-    const topLevelPackages = await pm.getTopLevelPackages()
-    const registry = await pm.getRegistry()
-    const language = await pm.getLanguage()
-    const pmVersion = await pm.getVersion()
-
-    debug('setting top-level packages: %O', topLevelPackages)
-    debug('setting registry to %O', registry)
-    debug('setting language to %O', language)
-    debug('setting version to %O', pmVersion)
-    initialAdBatchSize = await api
-      .setTopLevelPackages(topLevelPackages)
-      .setRegistry(registry)
-      .setLanguage(language)
-      .setMetadata({
-        packageManagerVersion: pmVersion,
-        flossbankVersion: version
-      })
-      .fetchAdBatch()
+    initialAdBatchSize = await api.fetchAdBatch()
   } catch (e) {
     debug('failed to fetch initial ad batch; running in passthru mode: %O', e)
     return noAdsPm(exit)
@@ -92,11 +75,37 @@ module.exports = async () => {
     return noAdsPm(exit)
   }
 
+  let sessionData
+  try {
+    sessionData = [
+      pm.getTopLevelPackages(),
+      pm.getRegistry(),
+      pm.getLanguage(),
+      pm.getVersion()
+    ]
+  } catch (e) {
+    debug('failed to get session data: %O', e)
+  }
+
   ui.setPmCmd(pm.getPmCmd())
     .setCallback(async () => {
+      let packages, registry, language, pmVersion
+      try {
+        ([packages, registry, language, pmVersion] = await Promise.all(sessionData))
+      } catch (e) {
+        debug('failed to resolve session data: %O', e)
+      }
       try {
         debug('completing ad viewing session')
-        await api.completeSession()
+        await api.completeSession({
+          packages,
+          registry,
+          language,
+          metadata: {
+            packageManagerVersion: pmVersion,
+            flossbankVersion: version
+          }
+        })
       } catch (e) {
         debug('failed to complete session: %O', e)
       }
