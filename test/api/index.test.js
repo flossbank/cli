@@ -40,17 +40,8 @@ test('fetchAdBatch | creates request', async (t) => {
     }))
   const api = new Api({ config: t.context.config })
   sinon.spy(api, 'createRequest')
-  api.setTopLevelPackages(['abc'])
-  api.setLanguage('javascript')
-  api.setRegistry('npm')
-  api.setMetadata({ packageManagerVersion: 'npm@1.1.1' })
   await api.fetchAdBatch()
-  t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {
-    registry: 'npm',
-    language: 'javascript',
-    packages: ['abc'],
-    metadata: { packageManagerVersion: 'npm@1.1.1' }
-  }))
+  t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {}))
   scope.done()
 })
 
@@ -60,8 +51,17 @@ test('completeSession | creates request', async (t) => {
     .reply(200)
   const api = new Api({ config: t.context.config })
   sinon.spy(api, 'createRequest')
-  await api.completeSession()
+  await api.completeSession({
+    registry: 'npm',
+    language: 'javascript',
+    packages: ['abc'],
+    metadata: { packageManagerVersion: 'npm@1.1.1' }
+  })
   t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
+    registry: 'npm',
+    language: 'javascript',
+    packages: ['abc'],
+    metadata: { packageManagerVersion: 'npm@1.1.1' },
     seen: api.seen.map(ad => ad.id)
   }))
   scope.done()
