@@ -1,6 +1,7 @@
 module.exports = async ({ alias, ui }) => {
   try {
     await alias.aliasAll()
+    await alias.addToProfiles()
   } catch (e) {
     ui.error('Flossbank failed to install. Please contact support@flossbank.com for help.')
     return

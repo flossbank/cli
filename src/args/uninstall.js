@@ -1,7 +1,9 @@
 module.exports = async ({ alias, ui }) => {
   try {
     await alias.unaliasAll()
+    await alias.removeFromProfiles()
   } catch (e) {
+    console.error(e)
     ui.error('Flossbank failed to uninstall. Please contact support@flossbank.com for help.')
     return
   }

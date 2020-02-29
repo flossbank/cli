@@ -25,6 +25,10 @@ function jsonToShell (json) {
   return SHEBANG + '\n\n' + lines
 }
 
+function pad (something) {
+  return `\n${something}\n`
+}
+
 function Alias ({ config }) {
   this.config = config
 }
@@ -60,12 +64,10 @@ Alias.prototype.removeAlias = function removeAlias (cmd) {
 }
 
 Alias.prototype.writeSourceFile = async function writeSourceFile () {
-  await writeFileAsync(this.getSourceFilePath(), jsonToShell(this.list()))
-
-  return this.addToProfile()
+  return writeFileAsync(this.getSourceFilePath(), jsonToShell(this.list()))
 }
 
-Alias.prototype.addToProfile = async function addToProfile () {
+Alias.prototype.updateProfiles = async function updateProfiles (predicate = () => false, updateFn = () => {}) {
   const profilePaths = detectProfile()
 
   const profiles = await Promise.all(
@@ -74,12 +76,32 @@ Alias.prototype.addToProfile = async function addToProfile () {
         .then((prof) => ({ profile: prof, path: profPath }))
       ))
 
-  const profilesToUpdate = profiles.filter(prof => !prof.profile.includes(this.getSourceCommand()))
+  const profilesToUpdate = profiles.filter(prof => predicate(prof))
 
   if (!profilesToUpdate.length) return
 
   return Promise.all(
-    profilesToUpdate.map(prof => writeFileAsync(prof.path, prof.profile + '\n\n' + this.getSourceCommand() + '\n'))
+    profilesToUpdate.map(prof => writeFileAsync(prof.path, updateFn(prof)))
+  )
+}
+
+Alias.prototype.addToProfiles = async function addToProfiles () {
+  return this.updateProfiles(
+    prof => !prof.profile.includes(this.getSourceCommand()),
+    prof => prof.profile + pad(this.getSourceCommand())
+  )
+}
+
+Alias.prototype.removeFromProfiles = async function removeFromProfiles () {
+  return this.updateProfiles(
+    prof => prof.profile.includes(this.getSourceCommand()),
+    prof => {
+      const out = []
+      for (const line of prof.profile.split('\n')) {
+        if (line !== this.getSourceCommand()) out.push(line)
+      }
+      return out.join('\n')
+    }
   )
 }
 
