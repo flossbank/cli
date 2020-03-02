@@ -106,6 +106,7 @@ module.exports = async () => {
             flossbankVersion: version
           }
         })
+        process.exit()
       } catch (e) {
         debug('failed to complete session: %O', e)
       }
@@ -115,8 +116,12 @@ module.exports = async () => {
     .startAds()
 
   debug('running package manager with ads')
-  adsPm((e, stdout, stderr) => {
-    debug('package manager execution complete')
-    ui.setPmOutput(e, stdout, stderr)
+  adsPm((err, { stdout, stderr, exit, code } = {}) => {
+    if (exit) {
+      debug('package manager execution complete')
+      ui.setPmDone(code)
+    } else {
+      ui.setPmOutput(err, stdout, stderr)
+    }
   })
 }

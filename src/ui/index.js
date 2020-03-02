@@ -1,3 +1,4 @@
+const readline = require('readline')
 const chalk = require('chalk')
 const Diffy = require('diffy')
 const debug = require('debug')('flossbank')
@@ -9,8 +10,7 @@ const { version } = require('../../package.json')
 
 function Ui () {
   this.interval = INTERVAL
-  this.pmStdout = ''
-  this.pmStderr = ''
+  this.pmOutput = Buffer.alloc(0)
   this.pmDone = false
   this.pmError = null
 
@@ -21,6 +21,9 @@ function Ui () {
 
   this.runtime = 0
   this.diffy = null
+
+  this.showPmOutput = false
+  this.ad = ''
 }
 
 Ui.prototype.setPmCmd = function setPmCmd (pmCmd) {
@@ -43,9 +46,26 @@ Ui.prototype.setFetchAd = function setFetchAd (fn) {
   return this
 }
 
+Ui.prototype.getSpinner = function getSpinner () {
+  return ['|', '/', '-', '\\'][Math.floor(this.runtime * 10) % 4]
+}
+
 Ui.prototype.getExecString = function getExecString () {
-  const suffix = this.pmDone ? '...done!' : '.'.repeat(this.runtime % 6)
-  return `Flossbank is executing ${chalk.bold(this.pmCmd)}${suffix}`
+  const suffix = this.pmDone ? '...done!' : '.'.repeat(Math.floor(this.runtime % 6))
+  return this.showPmOutput
+    ? `${this.getToggleString()}${suffix}`
+    : `Flossbank is executing ${chalk.bold(this.pmCmd)}${suffix}`
+}
+
+Ui.prototype.getToggleString = function getToggleString () {
+  return this.showPmOutput
+    ? 'Press any key to show ads instead of command output'
+    : 'Press any key to show command output instead of ads'
+}
+
+Ui.prototype.toggle = function toggle () {
+  this.showPmOutput = !this.showPmOutput
+  this.diffy.render()
 }
 
 Ui.prototype.startAds = async function startAds () {
@@ -54,23 +74,38 @@ Ui.prototype.startAds = async function startAds () {
     const diffy = this.diffy
     diffy.render(() => this.getExecString())
     this.renderInterval = setInterval(() => {
-      this.runtime++
+      this.runtime += 0.1
       diffy.render()
-    }, 1000)
+    }, 100)
+    readline.emitKeypressEvents(process.stdin)
+    process.stdin.setRawMode(true)
+
+    process.stdin.on('keypress', (_, key) => {
+      if (key && key.ctrl && key.name === 'c') {
+        process.exit()
+      }
+      this.toggle()
+    })
   }
   if (!this.pmDone) {
     let ad
-    try {
-      ad = await this.fetchAd()
-    } catch (e) {
-      debug('failed to fetch ad: %O', e)
-      return this.failure()
+    if (!this.showPmOutput) {
+      try {
+        ad = await this.fetchAd()
+      } catch (e) {
+        debug('failed to fetch ad: %O', e)
+        return this.failure()
+      }
+      if (!ad) return this.failure()
+      this.ad = format(ad)
     }
-    if (!ad) return this.failure()
 
-    const formattedAd = format(ad)
     if (!debug.enabled) {
-      this.diffy.render(() => `${this.getExecString()}\n${formattedAd}`)
+      this.diffy.render(() => {
+        return this.showPmOutput
+          ? `${this.pmOutput.length ? this.pmOutput : `${this.getSpinner()} ${this.getExecString()}`}`
+          : `${this.getSpinner()} ${this.getExecString()}\n${this.ad}\n${this.getToggleString()}`
+      })
     } else {
       debug('showing ad: %O', ad)
     }
@@ -92,17 +127,19 @@ Ui.prototype.failure = async function failure () {
 
 Ui.prototype.showCompletion = async function showCompletion () {
   debug('package manager complete; printing output')
+  process.stdin.setRawMode(false)
   if (!debug.enabled) {
     // clear ad and close diffy
     clearInterval(this.renderInterval)
-    this.diffy.render(() => '')
     this.diffy.destroy()
+  }
+
+  if (this.pmError) {
+    console.error(typeof this.pmError === 'number' ? `Exit code: ${this.pmError}` : this.pmError)
   }
 
   const adsSummary = summary(this.getSeenAds())
 
-  if (this.pmStdout) console.log(this.pmStdout)
-  if (this.pmStderr) console.error(this.pmStderr)
   if (adsSummary) console.log(adsSummary)
 }
 
@@ -143,9 +180,20 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
 }
 
 Ui.prototype.setPmOutput = function setPmOutput (e, stdout, stderr) {
-  this.pmStdout = stdout
-  this.pmStderr = stderr
-  this.pmError = e
+  if (stdout) {
+    this.pmOutput = Buffer.concat([this.pmOutput, stdout])
+  } else if (stderr) {
+    this.pmOutput = Buffer.concat([this.pmOutput, stderr])
+  } else if (e) {
+    this.pmDone = true
+    this.pmError = e
+  }
+}
+
+Ui.prototype.setPmDone = function setPmDone (code) {
+  if (code) {
+    this.pmError = code
+  }
   this.pmDone = true
 }
 
