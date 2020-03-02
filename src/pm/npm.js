@@ -1,12 +1,20 @@
+const { supportsColor } = require('chalk')
 const { spawn, execFile } = require('child_process')
 const parseArgs = require('minimist')
 const readPackageJson = require('../util/readPackageJson')
 
-exports.start = async function ({ silent }, done) {
+exports.start = async function ({ silent }, cb) {
   if (!silent) {
     return spawn('npm', process.argv.slice(2), { stdio: 'inherit' })
   }
-  return execFile('npm', process.argv.slice(2), done)
+  if (supportsColor) {
+    process.env.FORCE_COLOR = 3
+  }
+  const child = spawn('npm', process.argv.slice(2))
+  child.on('error', (err) => cb(err))
+  child.on('exit', (code) => cb(null, { exit: true, code }))
+  child.stdout.on('data', (chunk) => cb(null, { stdout: chunk }))
+  child.stderr.on('data', (chunk) => cb(null, { stderr: chunk }))
 }
 
 exports.isSupportedVerb = function (cmd) {
