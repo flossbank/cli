@@ -131,7 +131,6 @@ Ui.prototype.showCompletion = async function showCompletion () {
   if (!debug.enabled) {
     // clear ad and close diffy
     clearInterval(this.renderInterval)
-    this.diffy.destroy()
   }
 
   if (this.pmError) {
@@ -139,7 +138,11 @@ Ui.prototype.showCompletion = async function showCompletion () {
   }
 
   const adsSummary = summary(this.getSeenAds())
-
+  if (!this.showPmOutput) { // if currently showing ads, delete the ad and print the output
+    this.diffy.render(() => '')
+    this.diffy.destroy()
+    process.stdout.write(this.pmOutput)
+  }
   if (adsSummary) console.log(adsSummary)
 }
 
