@@ -1,4 +1,2 @@
 steps:
-- script: |
-    node bin.js version
-  displayName: Print Flossbank version
+- template: common.yml

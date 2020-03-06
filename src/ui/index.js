@@ -138,7 +138,7 @@ Ui.prototype.showCompletion = async function showCompletion () {
   }
 
   const adsSummary = summary(this.getSeenAds())
-  if (!this.showPmOutput) { // if currently showing ads, delete the ad and print the output
+  if (!this.showPmOutput && !debug.enabled) { // if currently showing ads, delete the ad and print the output
     this.diffy.render(() => '')
     this.diffy.destroy()
     process.stdout.write(this.pmOutput)

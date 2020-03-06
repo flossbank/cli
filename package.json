@@ -12,7 +12,8 @@
 	"scripts": {
 		"postinstall": "flossbank install || exit 0",
 		"postuninstall": "node bin.js uninstall",
-		"prepare": "npm t && webpack",
+		"prepare": "npm t && npm run build",
+		"build": "webpack",
 		"test": "standard && nyc ava"
 	},
 	"dependencies": {

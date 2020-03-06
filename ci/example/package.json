@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "core-js": "^3.6.4",
+    "fshash": "0.0.15",
+    "js-deep-equals": "^2.1.1",
+    "loose-envify": "1.4.0",
+    "object-assign": "4.1.1"
+  }
+}

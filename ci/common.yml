@@ -1,0 +1,14 @@
+steps:
+- script: |
+    node bin.js version
+  displayName: Print Flossbank version
+- script: |
+    node ci/configure.js
+    patch -u src/constants.js -i ci/constants.patch
+    npm run build
+    pushd ci/example
+    DEBUG=flossbank node ../../bin.js npm install > ../install_log.txt 2>&1
+    popd
+    cat ci/install_log.txt
+    node ci/validateInstall.js
+  displayName: Test ads during install

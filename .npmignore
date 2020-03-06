@@ -3,3 +3,4 @@ test
 src
 webpack.config.js
 ci/
+azure-pipelines.yml

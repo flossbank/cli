@@ -2,3 +2,6 @@ node_modules
 .env
 .nyc_output
 dist
+ci/example/package-lock.json
+ci/example/node_modules
+ci/install_log.txt
