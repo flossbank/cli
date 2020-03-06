@@ -97,7 +97,7 @@ Ui.prototype.startAds = async function startAds () {
         return this.failure()
       }
       if (!ad) return this.failure()
-      this.ad = format(ad)
+      this.ad = debug.enabled ? ad : format(ad)
     }
 
     if (!debug.enabled) {
@@ -127,9 +127,8 @@ Ui.prototype.failure = async function failure () {
 
 Ui.prototype.showCompletion = async function showCompletion () {
   debug('package manager complete; printing output')
-  process.stdin.setRawMode(false)
   if (!debug.enabled) {
-    // clear ad and close diffy
+    process.stdin.setRawMode(false)
     clearInterval(this.renderInterval)
   }
 

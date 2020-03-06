@@ -48,7 +48,7 @@ exports.getTopLevelPackages = async function () {
 
 exports.getRegistry = async function (cb) {
   return new Promise((resolve, reject) => {
-    execFile('command', ['npm', 'config', 'get', 'registry'], (e, stdout) => {
+    execFile('npm', ['config', 'get', 'registry'], (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine registry'))
       return resolve(stdout.trim())
@@ -62,7 +62,7 @@ exports.getLanguage = async function () {
 
 exports.getVersion = async function () {
   return new Promise((resolve, reject) => {
-    execFile('command', ['npm', '-v'], (e, stdout) => {
+    execFile('npm', ['-v'], (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine npm version'))
       return resolve(`npm@${stdout.trim()}`)
