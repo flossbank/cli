@@ -3,12 +3,21 @@ steps:
     node bin.js version
   displayName: Print Flossbank version
 - script: |
+    set -ex
+
+    # set api key
     node ci/configure.js
+
+    # use staging api
     patch -u src/constants.js -i ci/constants.patch
     npm run build
+
+    # install packages
     pushd ci/example
     DEBUG=flossbank node ../../bin.js npm install > ../install_log.txt 2>&1
     popd
+
+    # validate install output
     cat ci/install_log.txt
     node ci/validateInstall.js
   displayName: Test ads during install

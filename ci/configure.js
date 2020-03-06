@@ -10,10 +10,9 @@ function writeApiKey () {
       if (err) reject(err)
       if (!stdout) reject(Error('no source found'))
       const configFile = path.resolve(stdout.trim(), '../config.json')
-      const config = require(configFile)
-      writeFileSync(configFile, JSON.stringify(Object.assign({}, config, {
+      writeFileSync(configFile, JSON.stringify(Object.assign({}, {
         apiKey: INTEG_TEST_KEY
-      }), null, 4))
+      })))
       resolve()
     })
   })
