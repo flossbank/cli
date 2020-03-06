@@ -46,7 +46,7 @@ exports.getTopLevelPackages = async function () {
   return args._.slice(1) // args._[0] === 'install'
 }
 
-exports.getRegistry = async function (cb) {
+exports.getRegistry = async function () {
   return new Promise((resolve, reject) => {
     execFile('command', ['npm', 'config', 'get', 'registry'], (e, stdout) => {
       if (e) return reject(e)
