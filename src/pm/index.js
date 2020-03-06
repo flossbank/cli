@@ -1,3 +1,4 @@
+const debug = require('debug')('flossbank')
 const { SUPPORTED_PMS } = require('../constants')
 const ci = require('ci-info')
 
@@ -33,7 +34,11 @@ Pm.prototype.getPmCmd = function getPmCmd () {
 
 Pm.prototype.shouldShowAds = function shouldShowAds () {
   if (!this.supportedPm) return false
-  return this.pm.isSupportedVerb(this.pmCmd) && !ci.isCI
+  const supportedVerb = this.pm.isSupportedVerb(this.pmCmd)
+  if (debug.enabled) {
+    return supportedVerb
+  }
+  return supportedVerb && !ci.isCI
 }
 
 Pm.prototype.getTopLevelPackages = async function getTopLevelPackages () {
