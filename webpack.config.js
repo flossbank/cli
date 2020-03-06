@@ -42,5 +42,9 @@ module.exports = {
   plugins: [
     new webpack.NoEmitOnErrorsPlugin()
   ],
-  target: 'node'
+  target: 'node',
+  node: {
+    __dirname: false, // by default webpack replaces __dirname with `/` which is... wrong
+    __filename: false // by default webpack replaces __filename with `index.js` which is... also wrong
+  }
 }
