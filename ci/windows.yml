@@ -3,24 +3,25 @@ steps:
     node bin.js version
   displayName: Print Flossbank version
 - powershell: |
+    . ci/exec.ps1
     $ErrorActionPreference = "Stop"
 
     echo "Setting API key"
-    node ci/configure.js
+    exec { node ci/configure.js }
 
     echo "Setting API host to staging"
-    patch -u src/constants.js -i ci/constants.patch
-    npm run build
+    exec { patch -u src/constants.js -i ci/constants.patch }
+    exec { npm run build }
 
     echo "Testing install with ads"
     pushd ci/example
-    set DEBUG=flossbank
-    node ../../bin.js npm install > ../install_log.txt 2>&1
+    $env:DEBUG="flossbank"
+    exec { node ../../bin.js npm install > ../install_log.txt 2>&1 }
     popd
 
     echo "Install log:"
     cat ci/install_log.txt
 
     echo "Validating ads were shown"
-    node ci/validateInstall.js
+    exec { node ci/validateInstall.js }
   displayName: Test ads during install
