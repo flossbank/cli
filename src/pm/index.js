@@ -42,19 +42,43 @@ Pm.prototype.shouldShowAds = function shouldShowAds () {
 }
 
 Pm.prototype.getTopLevelPackages = async function getTopLevelPackages () {
-  return this.pm.getTopLevelPackages()
+  try {
+    const tlp = await this.pm.getTopLevelPackages()
+    return tlp
+  } catch (e) {
+    debug('failed to get top level packages %O', e)
+    return []
+  }
 }
 
 Pm.prototype.getRegistry = async function getRegistry () {
-  return this.pm.getRegistry()
+  try {
+    const registry = await this.pm.getRegistry()
+    return registry
+  } catch (e) {
+    debug('failed to get registry %O', e)
+    return null
+  }
 }
 
 Pm.prototype.getLanguage = async function getLanguage () {
-  return this.pm.getLanguage()
+  try {
+    const language = await this.pm.getLanguage()
+    return language
+  } catch (e) {
+    debug('failed to get language %O', e)
+    return null
+  }
 }
 
 Pm.prototype.getVersion = async function getVersion () {
-  return this.pm.getVersion()
+  try {
+    const version = await this.pm.getVersion()
+    return version
+  } catch (e) {
+    debug('failed to get pm version %O', e)
+    return null
+  }
 }
 
 module.exports = Pm

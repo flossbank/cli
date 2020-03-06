@@ -56,7 +56,7 @@ exports.getTopLevelPackages = async function () {
   return packages
 }
 
-exports.getRegistry = async function (cb) {
+exports.getRegistry = async function () {
   return new Promise((resolve, reject) => {
     execFile('yarn', ['config', 'get', 'registry'], (e, stdout) => {
       if (e) return reject(e)
