@@ -16,7 +16,7 @@ steps:
     echo "Testing install with ads"
     pushd ci/example
     $env:DEBUG="flossbank"
-    exec { node ../../bin.js npm install > ../install_log.txt 2>&1 }
+    exec { node ../../bin.js npm install } ../install_log.txt
     popd
 
     echo "Install log:"
