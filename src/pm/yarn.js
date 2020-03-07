@@ -1,5 +1,5 @@
 const { supportsColor } = require('chalk')
-const { spawn, execFile } = require('child_process')
+const { spawn, exec } = require('child_process')
 const parseArgs = require('minimist')
 const readPackageJson = require('../util/readPackageJson')
 
@@ -10,7 +10,7 @@ exports.start = async function ({ silent }, cb) {
   if (supportsColor) {
     process.env.FORCE_COLOR = 3
   }
-  const child = spawn('yarn', process.argv.slice(2))
+  const child = spawn('yarn', process.argv.slice(2), { shell: true })
   child.on('error', (err) => cb(err))
   child.on('exit', (code) => cb(null, { exit: true, code }))
   child.stdout.on('data', (chunk) => cb(null, { stdout: chunk }))
@@ -58,7 +58,7 @@ exports.getTopLevelPackages = async function () {
 
 exports.getRegistry = async function () {
   return new Promise((resolve, reject) => {
-    execFile('yarn', ['config', 'get', 'registry'], (e, stdout) => {
+    exec('yarn', ['config', 'get', 'registry'], (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine registry'))
       return resolve(stdout.trim())
@@ -72,7 +72,7 @@ exports.getLanguage = async function () {
 
 exports.getVersion = async function () {
   return new Promise((resolve, reject) => {
-    execFile('yarn', ['-v'], (e, stdout) => {
+    exec('yarn', ['-v'], (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine yarn version'))
       return resolve(`yarn@${stdout.trim()}`)
