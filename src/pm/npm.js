@@ -1,5 +1,5 @@
 const { supportsColor } = require('chalk')
-const { spawn, exec } = require('child_process')
+const { spawn, execFile } = require('child_process')
 const parseArgs = require('minimist')
 const readPackageJson = require('../util/readPackageJson')
 
@@ -48,7 +48,7 @@ exports.getTopLevelPackages = async function () {
 
 exports.getRegistry = async function () {
   return new Promise((resolve, reject) => {
-    exec('npm', ['config', 'get', 'registry'], (e, stdout) => {
+    execFile('npm', ['config', 'get', 'registry'], { shell: true }, (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine registry'))
       return resolve(stdout.trim())
@@ -62,7 +62,7 @@ exports.getLanguage = async function () {
 
 exports.getVersion = async function () {
   return new Promise((resolve, reject) => {
-    exec('npm', ['-v'], (e, stdout) => {
+    execFile('npm', ['-v'], { shell: true }, (e, stdout) => {
       if (e) return reject(e)
       if (!stdout) return reject(new Error('failed to determine npm version'))
       return resolve(`npm@${stdout.trim()}`)

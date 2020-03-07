@@ -2,7 +2,8 @@ const os = require('os')
 const { readFileSync } = require('fs')
 const assert = require('assert')
 
-const output = readFileSync('./ci/install_log.txt', 'utf8').split(os.EOL)
+const encoding = os.platform() === 'win32' ? 'utf16le' : 'utf8'
+const output = readFileSync('./ci/install_log.txt', encoding).split(os.EOL)
 
 assert.ok(output.find(line => line.includes('flossbank running package manager with ads')))
 assert.ok(output.find(line => line.includes('flossbank showing ad')))
