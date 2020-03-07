@@ -1,14 +1,14 @@
 const readline = require('readline')
 const chalk = require('chalk')
 const Diffy = require('diffy')
-const debug = require('debug')('flossbank')
 const auth = require('./auth')
 const format = require('./format')
 const summary = require('./summary')
 const { INTERVAL, USAGE } = require('../constants')
 const { version } = require('../../package.json')
 
-function Ui () {
+function Ui ({ runlog }) {
+  this.runlog = runlog
   this.interval = INTERVAL
   this.pmOutput = Buffer.alloc(0)
   this.pmDone = false
@@ -69,7 +69,7 @@ Ui.prototype.toggle = function toggle () {
 }
 
 Ui.prototype.startAds = async function startAds () {
-  if (!this.diffy && !debug.enabled) {
+  if (!this.diffy && !this.runlog.enabled) {
     this.diffy = Diffy()
     const diffy = this.diffy
     diffy.render(() => this.getExecString())
@@ -93,21 +93,21 @@ Ui.prototype.startAds = async function startAds () {
       try {
         ad = await this.fetchAd()
       } catch (e) {
-        debug('failed to fetch ad: %O', e)
+        this.runlog.error('failed to fetch ad: %O', e)
         return this.failure()
       }
       if (!ad) return this.failure()
-      this.ad = debug.enabled ? ad : format(ad)
+      this.ad = this.runlog.enabled ? ad : format(ad)
     }
 
-    if (!debug.enabled) {
+    if (!this.runlog.enabled) {
       this.diffy.render(() => {
         return this.showPmOutput
           ? `${this.pmOutput.length ? this.pmOutput : `${this.getSpinner()} ${this.getExecString()}`}`
           : `${this.getSpinner()} ${this.getExecString()}\n${this.ad}\n${this.getToggleString()}`
       })
     } else {
-      debug('showing ad: %O', ad)
+      this.runlog.debug('showing ad: %O', ad)
     }
     setTimeout(() => this.startAds(), this.interval)
   } else {
@@ -118,7 +118,7 @@ Ui.prototype.startAds = async function startAds () {
 
 Ui.prototype.failure = async function failure () {
   if (!this.pmDone) {
-    debug('package manager is not done yet; waiting to show completion message')
+    this.runlog.debug('package manager is not done yet; waiting to show completion message')
     setTimeout(() => this.failure(), 500)
     return
   }
@@ -126,8 +126,8 @@ Ui.prototype.failure = async function failure () {
 }
 
 Ui.prototype.showCompletion = async function showCompletion () {
-  debug('package manager complete; printing output')
-  if (!debug.enabled) {
+  this.runlog.debug('package manager complete; printing output')
+  if (!this.runlog.enabled) {
     process.stdin.setRawMode(false)
     clearInterval(this.renderInterval)
   }
@@ -137,7 +137,7 @@ Ui.prototype.showCompletion = async function showCompletion () {
   }
 
   const adsSummary = summary(this.getSeenAds())
-  if (!this.showPmOutput && !debug.enabled) { // if currently showing ads, delete the ad and print the output
+  if (!this.showPmOutput && !this.runlog.enabled) { // if currently showing ads, delete the ad and print the output
     this.diffy.render(() => '')
     this.diffy.destroy()
     process.stdout.write(this.pmOutput)
@@ -152,18 +152,18 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   }
   const { email } = await auth.getEmail()
   if (!email) {
-    debug('did not get an email; cannot continue authentication flow')
+    this.runlog.debug('did not get an email; cannot continue authentication flow')
     auth.authenticationFailed()
     return
   }
   try {
     const res = await sendAuthEmail(email)
     if (!res.ok) {
-      debug('got bad status code %o when requesting authentication email', res.statusCode)
+      this.runlog.debug('got bad status code %o when requesting authentication email', res.statusCode)
       throw new Error('Could not request auth token email')
     }
   } catch (e) {
-    debug('failed to request authentication email: %O', e)
+    this.runlog.error('failed to request authentication email: %O', e)
     console.error(
       chalk.red(
         'Unable to request authentication token. Please email support@flossbank.com for support.'
@@ -173,7 +173,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   }
   const { token } = await auth.getAuthToken()
   if (!token || !auth.isTokenTolerable(token)) {
-    debug('got bad token from authentication flow: %o', token)
+    this.runlog.debug('got bad token from authentication flow: %o', token)
     auth.authenticationFailed()
     return
   }

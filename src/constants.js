@@ -7,10 +7,12 @@ module.exports = {
     COMPLETE: 'session/complete',
     SEND_AUTH: 'user/register'
   },
-  SUPPORTED_ARGS: ['help', 'version', 'auth', 'install', 'uninstall', 'source'],
+  SUPPORTED_ARGS: ['help', 'version', 'auth', 'install', 'uninstall', 'source', 'runlog'],
   DEFAULT_CONFIG: {},
   PROJECT_NAME: 'flossbank',
   CONFIG_API_KEY: 'apiKey',
+  CONFIG_ALIASES: 'aliases',
+  CONFIG_LAST_RUNLOG: 'lastRunlog',
   SHEBANG: '#!/usr/bin/env bash',
   ALIAS_FILE: 'flossbank_aliases.sh',
   SUPPORTED_PMS: ['npm', 'yarn'],

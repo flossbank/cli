@@ -8,23 +8,29 @@ test.beforeEach((t) => {
   t.context.config = {
     getApiKey: sinon.stub().returns('abc')
   }
+  t.context.runlog = {
+    debug: sinon.stub(),
+    record: sinon.stub(),
+    error: sinon.stub(),
+    keys: {}
+  }
 })
 
 test('getApiKey | gets api key from config', async (t) => {
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   api.getApiKey()
   t.true(t.context.config.getApiKey.calledOnce)
 })
 
 test('fetchAd | empty unseen', async (t) => {
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.stub(api, 'fetchAdBatch')
   await t.throwsAsync(api.fetchAd())
   t.true(api.fetchAdBatch.calledOnce)
 })
 
 test('fetchAd | gets an ad', async (t) => {
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   api.unseen = [{ id: 123 }]
   const ad = await api.fetchAd()
   t.deepEqual(ad.id, 123)
@@ -38,7 +44,7 @@ test('fetchAdBatch | creates request', async (t) => {
       ads: [],
       sessionId: 'abc'
     }))
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.spy(api, 'createRequest')
   await api.fetchAdBatch()
   t.true(api.createRequest.calledWith(ROUTES.START, 'POST', {}))
@@ -49,7 +55,7 @@ test('completeSession | creates request', async (t) => {
   const scope = nock('https://api.flossbank.com')
     .post('/session/complete')
     .reply(200)
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.spy(api, 'createRequest')
   await api.completeSession({
     registry: 'npm',
@@ -68,13 +74,13 @@ test('completeSession | creates request', async (t) => {
 })
 
 test('createRequest | no key throws', async (t) => {
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   t.context.config.getApiKey.returns(null)
   t.throws(() => api.createRequest())
 })
 
 test('createRequest | creates request', async (t) => {
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   api.key = 'abc'
   const [url, options] = api.createRequest('endpoint', 'POST', { a: 1 })
   t.deepEqual(url, `${API_HOST}/endpoint`)
@@ -89,7 +95,7 @@ test('long request times out', async (t) => {
     .post('/session/complete')
     .delay(11000)
     .reply(200)
-  const api = new Api({ config: t.context.config })
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.spy(api, 'createRequest')
   await t.throwsAsync(api.completeSession())
   t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
