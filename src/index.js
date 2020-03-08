@@ -5,74 +5,88 @@ const Ui = require('./ui')
 const Pm = require('./pm')
 const Args = require('./args')
 const Alias = require('./util/alias')
+const TempWriter = require('./util/temp')
+const { Runlog, keys } = require('./util/runlog')
 const { version } = require('../package.json')
 
 module.exports = async () => {
   const config = new Config()
-  const api = new Api({ config })
+  const tempWriter = new TempWriter()
+  const runlog = new Runlog({ config, debug, tempWriter })
+  const api = new Api({ config, runlog })
   const alias = new Alias({ config })
-  const pm = new Pm()
-  const ui = new Ui()
+  const pm = new Pm({ runlog })
+  const ui = new Ui({ runlog })
   const args = new Args({ api, ui, config, alias })
-  const exit = (e) => {
-    process.exit(e ? 1 : 0)
+  const exit = (reason, code) => {
+    runlog.write(reason).then(() => { process.exit(code || 0) })
   }
 
-  debug('initializing arguments')
-  const { hasArgs } = args.init()
-  debug('have arguments: %o', !!hasArgs)
+  runlog.record(keys.FB_VERSION, version)
 
-  debug('initializing package manager')
+  runlog.debug('initializing arguments')
+  const parsedArgs = args.init()
+  const { hasArgs } = parsedArgs
+  runlog.record(keys.ARGUMENTS, parsedArgs)
+
+  runlog.debug('initializing package manager')
   const { supportedPm, adsPm, noAdsPm } = await pm.init()
-  debug('supportedPm: %o', supportedPm)
+  runlog.record(keys.SUPPORTED_PM, supportedPm)
+  const pmCmd = pm.getPmCmd()
+  runlog.record(keys.PM_CMD, pmCmd)
 
   if (!supportedPm && !hasArgs) {
-    debug('unsupported pm and no arguments; exiting')
+    runlog.debug('unsupported pm and no arguments; exiting')
     ui.error('Flossbank: unsupported package manager.')
-    process.exit(1)
+    return exit('unsupported package manager', 1)
   }
 
   if (!pm.shouldShowAds() && !hasArgs) {
-    debug('no args and pm determined we should not show ads; running in passthru mode')
-    return noAdsPm(exit)
+    runlog.debug('no args and pm determined we should not show ads')
+    runlog.record(keys.PASSTHROUGH_MODE, true)
+    return noAdsPm()
   }
 
   if (process.env.FLOSSBANK_DISABLE) {
-    debug('flossbank manually disabled; running in passthru mode')
-    return noAdsPm(exit)
+    runlog.record(keys.MANUALLY_DISABLED, true)
+    return noAdsPm()
   }
 
-  const haveApiKey = config.getApiKey()
+  const apiKey = config.getApiKey()
+  runlog.record(keys.HAVE_API_KEY, !!apiKey)
 
   if (hasArgs) {
-    debug('have flossbank-specific args; running args logic')
-    return args.act()
+    runlog.debug('have flossbank-specific args; running args logic')
+    await args.act()
+    return exit()
   }
 
-  if (!haveApiKey) {
-    debug('have no api key from config; running authentication flow')
-    const apiKey = await ui.authenticate({ haveApiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
-    if (!apiKey) {
-      debug('did not get a valid api key back from authentication flow; running in passthru mode')
+  if (!apiKey) {
+    const newApiKey = await ui.authenticate({ haveApiKey: !!apiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
+    if (!newApiKey) {
+      runlog.record(keys.AUTH_FLOW_FAILED, true)
+      runlog.record(keys.PASSTHROUGH_MODE, true)
       // something went wrong with getting the key
       // pass control to pm and leave
-      return noAdsPm(exit)
+      return noAdsPm()
     }
     await config.setApiKey(apiKey)
-    debug('persisted api key in config')
+    runlog.debug('persisted api key in config')
   }
 
   let initialAdBatchSize = 0
   try {
     initialAdBatchSize = await api.fetchAdBatch()
+    runlog.record(keys.INITIAL_AD_BATCH_SIZE, initialAdBatchSize)
   } catch (e) {
-    debug('failed to fetch initial ad batch; running in passthru mode: %O', e)
-    return noAdsPm(exit)
+    runlog.error('failed to fetch initial ad batch %O', e)
+    runlog.record(keys.PASSTHROUGH_MODE, true)
+    return noAdsPm()
   }
 
   if (initialAdBatchSize < 1) {
-    debug('api returned empty list of ads; running in passthru mode')
-    return noAdsPm(exit)
+    runlog.record(keys.PASSTHROUGH_MODE, true)
+    return noAdsPm()
   }
 
   let sessionData
@@ -84,41 +98,44 @@ module.exports = async () => {
       pm.getVersion()
     ]
   } catch (e) {
-    debug('failed to get session data: %O', e)
+    runlog.error('failed to get session data: %O', e)
   }
 
-  ui.setPmCmd(pm.getPmCmd())
+  ui.setPmCmd(pmCmd)
     .setCallback(async () => {
       let packages, registry, language, pmVersion
       try {
         ([packages, registry, language, pmVersion] = await Promise.all(sessionData))
       } catch (e) {
-        debug('failed to resolve session data: %O', e)
+        runlog.error('failed to resolve session data: %O', e)
       }
+      const sessionCompleteData = {
+        packages,
+        registry,
+        language,
+        metadata: {
+          packageManagerVersion: pmVersion,
+          flossbankVersion: version
+        }
+      }
+      runlog.record(keys.SESSION_COMPLETE_DATA, sessionCompleteData)
       try {
-        debug('completing ad viewing session')
-        await api.completeSession({
-          packages,
-          registry,
-          language,
-          metadata: {
-            packageManagerVersion: pmVersion,
-            flossbankVersion: version
-          }
-        })
-        process.exit()
+        runlog.debug('completing ad viewing session')
+        await api.completeSession(sessionCompleteData)
+        exit()
       } catch (e) {
-        debug('failed to complete session: %O', e)
+        runlog.error('failed to complete session: %O', e)
       }
     })
     .setFetchAd(async () => api.fetchAd())
     .setGetSeenAds(() => api.getSeenAds())
     .startAds()
 
-  debug('running package manager with ads')
+  runlog.debug('running package manager with ads')
+  runlog.record(keys.PASSTHROUGH_MODE, false)
   adsPm((err, { stdout, stderr, exit, code } = {}) => {
     if (exit) {
-      debug('package manager execution complete')
+      runlog.debug('package manager execution complete')
       ui.setPmDone(code)
     } else {
       ui.setPmOutput(err, stdout, stderr)

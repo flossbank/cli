@@ -1,11 +1,11 @@
 const qs = require('querystring')
-const debug = require('debug')('flossbank')
 const fetch = require('./fetch')
 const { API_HOST, ROUTES } = require('../constants')
 
-function Api ({ config }) {
+function Api ({ config, runlog }) {
   this.url = API_HOST
   this.config = config
+  this.runlog = runlog
 
   this.unseen = []
   this.seen = []
@@ -21,7 +21,7 @@ Api.prototype.getSeenAds = function getSeenAds () {
 
 Api.prototype.fetchAd = async function fetchAd () {
   if (!this.unseen.length) {
-    debug('unseen ads list is empty, requesting more')
+    this.runlog.debug('unseen ads list is empty, requesting more')
     await this.fetchAdBatch()
   }
   const ad = this.unseen.pop()
@@ -37,11 +37,12 @@ Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   let ads = []
   try {
     const res = await fetch(url, options)
+    if (!res.ok) throw new Error(`did not receive ok response from api: ${res.status}`)
     const json = await res.json()
     ads = json.ads
     this.sessionId = json.sessionId
   } catch (e) {
-    debug('could not fetch ads: %O', e)
+    this.runlog.error('could not fetch ads: %O', e)
   }
   this.unseen.push(...ads || [])
   return this.unseen.length
@@ -60,10 +61,9 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
 }
 
 Api.prototype.completeSession = async function completeSession (sessionData = {}) {
-  debug('completeing session with session data: %O', sessionData)
   const seenAdIds = this.seen.map(ad => ad.id)
   const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds, ...sessionData })
-  debug('completing session with these ad ids: %O', seenAdIds)
+  this.runlog.record(this.runlog.keys.SEEN_AD_IDS, seenAdIds)
   return fetch(url, options)
 }
 

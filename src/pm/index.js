@@ -1,8 +1,8 @@
-const debug = require('debug')('flossbank')
 const { SUPPORTED_PMS } = require('../constants')
 const ci = require('ci-info')
 
-function Pm () {
+function Pm ({ runlog }) {
+  this.runlog = runlog
   this.pm = null
   this.pmCmd = null
 }
@@ -22,7 +22,11 @@ Pm.prototype.init = async function init () {
 
   const self = this
 
-  const noAdsPm = (cb) => self.pm.start({ silent: false }, cb)
+  const noAdsPm = () => {
+    this.runlog.write().then(() => {
+      self.pm.start({ silent: false })
+    })
+  }
   const adsPm = (cb) => { self.pm.start({ silent: true }, cb) }
 
   return { supportedPm, adsPm, noAdsPm }
@@ -35,7 +39,7 @@ Pm.prototype.getPmCmd = function getPmCmd () {
 Pm.prototype.shouldShowAds = function shouldShowAds () {
   if (!this.supportedPm) return false
   const supportedVerb = this.pm.isSupportedVerb(this.pmCmd)
-  if (debug.enabled) {
+  if (this.runlog.enabled) { // allow ads in CI if in debug mode
     return supportedVerb
   }
   return supportedVerb && !ci.isCI
@@ -46,7 +50,7 @@ Pm.prototype.getTopLevelPackages = async function getTopLevelPackages () {
     const tlp = await this.pm.getTopLevelPackages()
     return tlp
   } catch (e) {
-    debug('failed to get top level packages %O', e)
+    this.runlog.error('failed to get top level packages %O', e)
     return []
   }
 }
@@ -56,7 +60,7 @@ Pm.prototype.getRegistry = async function getRegistry () {
     const registry = await this.pm.getRegistry()
     return registry
   } catch (e) {
-    debug('failed to get registry %O', e)
+    this.runlog.error('failed to get registry %O', e)
     return null
   }
 }
@@ -66,7 +70,7 @@ Pm.prototype.getLanguage = async function getLanguage () {
     const language = await this.pm.getLanguage()
     return language
   } catch (e) {
-    debug('failed to get language %O', e)
+    this.runlog.error('failed to get language %O', e)
     return null
   }
 }
@@ -76,7 +80,7 @@ Pm.prototype.getVersion = async function getVersion () {
     const version = await this.pm.getVersion()
     return version
   } catch (e) {
-    debug('failed to get pm version %O', e)
+    this.runlog.error('failed to get pm version %O', e)
     return null
   }
 }

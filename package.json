@@ -36,6 +36,7 @@
 		"prompts": "^2.2.1",
 		"sinon": "^7.5.0",
 		"standard": "^13.1.0",
+		"temp-write": "^4.0.0",
 		"term-size": "^2.1.0",
 		"terser-webpack-plugin": "^2.3.2",
 		"webpack": "^4.41.4",
