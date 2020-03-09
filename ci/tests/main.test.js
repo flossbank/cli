@@ -37,7 +37,7 @@ test.after.always((t) => {
   process.chdir(path.resolve(__dirname, '..'))
 })
 
-test.serial('run pm with ads', async (t) => {
+test.serial('integ: run pm with ads', async (t) => {
   await runFlossbank(['npm', 'install'])
   const runlog = await getLastRunlog()
   t.true(runlog.supportedPm)
