@@ -7,8 +7,8 @@ const INTEG_TEST_KEY = 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34
 function writeApiKey () {
   return new Promise((resolve, reject) => {
     execFile('node', ['bin.js', 'source'], (err, stdout) => {
-      if (err) reject(err)
-      if (!stdout) reject(Error('no source found'))
+      if (err) return reject(err)
+      if (!stdout) return reject(Error('no source found'))
       const configFile = path.resolve(stdout.trim(), '../config.json')
       writeFileSync(configFile, JSON.stringify(Object.assign({}, {
         apiKey: INTEG_TEST_KEY

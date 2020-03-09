@@ -14,7 +14,8 @@
 		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm t && npm run build",
 		"build": "webpack",
-		"test": "standard && nyc ava"
+		"test": "standard && nyc ava test/*/*.test.js",
+		"integ-tests": "ava ci/tests/*.test.js"
 	},
 	"dependencies": {
 		"update-notifier": "^4.0.0"
