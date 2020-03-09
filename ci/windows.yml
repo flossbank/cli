@@ -13,7 +13,7 @@ steps:
     exec { patch -u src/constants.js -i ci/constants.patch }
     exec { npm run build }
   displayName: Pre-test config
-  - script: |
+- powershell: |
     . ci/exec.ps1
     $ErrorActionPreference = "Stop"
     $env:DEBUG="flossbank"
