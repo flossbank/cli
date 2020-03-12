@@ -10,8 +10,8 @@ function buildArgs (help) {
   return [`--${help}`, `-${h}`, `${help}`]
 }
 
-function Args ({ config, api, ui, alias }) {
-  this.deps = { config, api, ui, alias }
+function Args ({ config, api, ui, alias, runlog }) {
+  this.deps = { config, api, ui, alias, runlog }
   this.cmd = {}
 }
 

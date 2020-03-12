@@ -1,9 +1,9 @@
-module.exports = async ({ alias, ui }) => {
+module.exports = async ({ alias, ui, runlog }) => {
   try {
-    await alias.aliasAll()
-    await alias.addToProfiles()
+    await alias.aliasAllSupportedPackageManagers()
   } catch (e) {
     ui.error('Flossbank failed to install. Please contact support@flossbank.com for help.')
+    runlog.error('failed to install', e)
     return
   }
   ui.info('Flossbank successfully installed for supported package managers.')
