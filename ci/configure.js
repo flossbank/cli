@@ -1,25 +1,10 @@
-const path = require('path')
-const { writeFileSync } = require('fs')
-const { execFile } = require('child_process')
+const Config = require('../src/config')
 
 const INTEG_TEST_KEY = 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34b48357d1'
 
-function writeApiKey () {
-  return new Promise((resolve, reject) => {
-    execFile('node', ['bin.js', 'source'], (err, stdout) => {
-      if (err) return reject(err)
-      if (!stdout) return reject(Error('no source found'))
-      const configFile = path.resolve(stdout.trim(), '../config.json')
-      writeFileSync(configFile, JSON.stringify(Object.assign({}, {
-        apiKey: INTEG_TEST_KEY
-      })))
-      resolve()
-    })
-  })
-}
-
 async function main () {
-  await writeApiKey()
+  const config = new Config()
+  config.setApiKey(INTEG_TEST_KEY)
 }
 
 main()
