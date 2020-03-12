@@ -30,8 +30,8 @@ function deleteNpmArtifacts () {
   })
 }
 
-function areNodeModulesPresent () {
-  return ls('node_modules').length
+function nodeModulesArePresent () {
+  return ls('node_modules').length > 0
 }
 
 function runFlossbank (args) {
@@ -72,7 +72,7 @@ test.after.always((t) => {
 test.serial('integ: run pm with ads', async (t) => {
   await setIntegApiKey()
   await runFlossbank(['npm', 'install'])
-  t.false(areNodeModulesPresent())
+  t.true(nodeModulesArePresent())
 
   const runlog = await getLastRunlog()
   t.true(runlog.supportedPm)
@@ -84,7 +84,7 @@ test.serial('integ: run pm with ads', async (t) => {
 test.serial('integ: run in passthru mode when auth fails', async (t) => {
   await setInvalidApiKey()
   await runFlossbank(['npm', 'install'])
-  t.false(areNodeModulesPresent())
+  t.true(nodeModulesArePresent())
 
   const runlog = await getLastRunlog()
   t.true(runlog.supportedPm)
