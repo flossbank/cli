@@ -5,7 +5,7 @@ const readPackageJson = require('../util/readPackageJson')
 
 exports.start = async function ({ silent }, cb) {
   if (!silent) {
-    return spawn('yarn', process.argv.slice(2), { stdio: 'inherit' })
+    return spawn('yarn', process.argv.slice(2), { stdio: 'inherit', shell: true })
   }
   if (supportsColor) {
     process.env.FORCE_COLOR = 3

@@ -5,9 +5,6 @@ steps:
 - script: |
     set -e
 
-    echo "Setting API key"
-    node ci/configure.js
-
     echo "Setting API host to staging"
     patch -u src/constants.js -i ci/constants.patch
     npm run build

@@ -6,9 +6,6 @@ steps:
     . ci/exec.ps1
     $ErrorActionPreference = "Stop"
 
-    echo "Setting API key"
-    exec { node ci/configure.js }
-
     echo "Setting API host to staging"
     exec { patch -u src/constants.js -i ci/constants.patch }
     exec { npm run build }
