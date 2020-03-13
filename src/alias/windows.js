@@ -1,27 +1,21 @@
 const Alias = require('.')
+const { PROJECT_NAME } = require('../constants')
 
 class WindowsAliasController extends Alias {
-  _convertConfigToAliases (aliasList) {
-    throw new Error('override this stub with os-specific logic')
-  }
-
   _getAliasFileName () {
-    throw new Error('override this stub with os-specific logic')
+    return 'flossbank_aliases.ps1'
   }
 
   _getSourceCommand () {
-    throw new Error('override this stub with os-specific logic')
-    // return ['.', this.getSourceFilePath()].join(' ')
+    return `. "${this.getSourceFilePath()}" > $null 2>&1`
   }
 
   _createAlias (cmd) {
-    throw new Error('override this stub with os-specific logic')
-    // return `unalias ${cmd} 2>/dev/null; ${cmd} () { command -v ${PROJECT_NAME} >/dev/null 2>&1 && ${PROJECT_NAME} ${cmd} $@ || command ${cmd} $@; };`
+    return `function ${cmd} { if (Get-Command ${PROJECT_NAME} -ea Ignore) { ${PROJECT_NAME} ${cmd} @args } else {  &(Get-Command -Name ${cmd} -Type Application)[0] @args } }`
   }
 
   _createRemoveAlias () {
-    throw new Error('override this stub with os-specific logic')
-    // return ''
+    return ''
   }
 }
 

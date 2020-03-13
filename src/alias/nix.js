@@ -1,21 +1,13 @@
-const {
-  SHEBANG,
-  PROJECT_NAME
-} = require('../constants')
 const Alias = require('.')
+const { PROJECT_NAME } = require('../constants')
 
 class NixAliasController extends Alias {
-  _convertConfigToAliases (aliasList) {
-    const lines = Object.keys(aliasList).reduce((file, alias) => file + aliasList[alias] + '\n', '')
-    return SHEBANG + '\n\n' + lines
-  }
-
   _getAliasFileName () {
     return 'flossbank_aliases.sh'
   }
 
   _getSourceCommand () {
-    return ['.', this.getSourceFilePath()].join(' ')
+    return `. "${this.getSourceFilePath()}"`
   }
 
   _createAlias (cmd) {

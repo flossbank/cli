@@ -1,6 +1,7 @@
 const test = require('ava')
 const sinon = require('sinon')
 const path = require('path')
+const os = require('os')
 const Alias = require('../../src/alias')
 
 test.beforeEach((t) => {
@@ -84,8 +85,12 @@ test('_writeSourceFile | writes', async (t) => {
   ])
 })
 
+test('_convertConfigToAliases', (t) => {
+  const res = t.context.alias._convertConfigToAliases({ a: 'a-alias', b: 'b-alias' })
+  t.is(res, `a-alias${os.EOL}b-alias${os.EOL}`)
+})
+
 test('abstract methods require implementation', (t) => {
-  t.throws(t.context.alias._convertConfigToAliases, 'override this stub with os-specific logic')
   t.throws(t.context.alias._getAliasFileName, 'override this stub with os-specific logic')
   t.throws(t.context.alias._getSourceCommand, 'override this stub with os-specific logic')
   t.throws(t.context.alias._createAlias, 'override this stub with os-specific logic')

@@ -1,3 +1,4 @@
+const { EOL } = require('os')
 const { join } = require('path')
 const { SUPPORTED_PMS } = require('../constants')
 const { writeFileAsync } = require('../util/asyncFs')
@@ -44,7 +45,7 @@ class Alias {
   }
 
   _convertConfigToAliases (aliasList) {
-    throw new Error('override this stub with os-specific logic')
+    return Object.keys(aliasList).reduce((file, alias) => file + aliasList[alias] + EOL, '')
   }
 
   _getAliasFileName () {
