@@ -30,8 +30,8 @@ function deleteNpmArtifacts () {
   })
 }
 
-function nodeModulesArePresent () {
-  return ls('node_modules').length > 0
+function getNodeModules () {
+  return ls('./node_modules/*').map(dir => dir.name)
 }
 
 function runFlossbank (args) {
@@ -60,9 +60,10 @@ test.before(() => {
   process.chdir(__dirname)
 })
 
-test.afterEach(async () => {
+test.afterEach(async (t) => {
   // delete node modules from the test dir so that we can assert their presence during tests
   await deleteNpmArtifacts()
+  t.log('node modules empty:', getNodeModules())
 })
 
 test.after.always((t) => {
@@ -72,7 +73,9 @@ test.after.always((t) => {
 test.serial('integ: run pm with ads', async (t) => {
   await setIntegApiKey()
   await runFlossbank(['npm', 'install'])
-  t.true(nodeModulesArePresent())
+  const nodeModules = getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(nodeModules.length > 0)
 
   const runlog = await getLastRunlog()
   t.true(runlog.supportedPm)
@@ -84,7 +87,9 @@ test.serial('integ: run pm with ads', async (t) => {
 test.serial('integ: run in passthru mode when auth fails', async (t) => {
   await setInvalidApiKey()
   await runFlossbank(['npm', 'install'])
-  t.true(nodeModulesArePresent())
+  const nodeModules = getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(nodeModules.length > 0)
 
   const runlog = await getLastRunlog()
   t.true(runlog.supportedPm)
