@@ -1,7 +1,6 @@
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
-const encoding = require('./encoding')
 const { exec } = require('child_process')
 const makeDir = require('make-dir')
 const { readFileAsync, writeFileAsync, openAsync, closeAsync } = require('../util/asyncFs')
@@ -14,11 +13,13 @@ function inConfig (...filepaths) {
   return inHome('.config', ...filepaths)
 }
 
+// shells and an appropriate config file to add our source line to
+// ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
 const SUPPORTED_SHELLS = {
   shellFormat: {
+    // only support shells that support functions
+    // ref: https://web.archive.org/web/20160403120601/http://www.unixnote.com/2010/05/different-unix-shell.html
     sh: [inHome('.profile')],
-    csh: [inHome('.cshrc')],
-    tcsh: [inHome('.tcshrc')],
     ksh: [inHome('.kshrc')],
     zsh: [inHome('.zshrc')],
     bash: [inHome('.bashrc'), inHome('.bash_profile')]
@@ -57,6 +58,8 @@ class Profile {
     this.runlog.record('detectedShellFormatProfiles', detectedShellFormatProfiles)
     this.runlog.record('detectedPowerFormatProfiles', detectedPowerFormatProfiles)
 
+    await this._backupProfiles([...detectedShellFormatProfiles, ...detectedPowerFormatProfiles])
+
     const shellProfiles = await this._readProfiles(detectedShellFormatProfiles)
     const powerProfiles = await this._readProfiles(detectedPowerFormatProfiles)
 
@@ -77,14 +80,14 @@ class Profile {
   async _appendLineToProfile (profile, line) {
     const { contents } = profile
     if (contents.includes(line)) return // don't double add
-    return writeFileAsync(profile.path, `${contents}${this._pad(line)}`, { encoding: profile.encoding })
+    return writeFileAsync(profile.path, `${contents}${this._pad(line)}`)
   }
 
   async _removeLineFromProfile (profile, line) {
     const { contents } = profile
     if (!contents.includes(line)) return // nothing to remove
     const cleanProfile = contents.split(os.EOL).filter(existingLine => existingLine !== line).join(os.EOL)
-    return writeFileAsync(profile.path, cleanProfile, { encoding: profile.encoding })
+    return writeFileAsync(profile.path, cleanProfile)
   }
 
   async _detectProfiles () {
@@ -121,29 +124,34 @@ class Profile {
     }
   }
 
+  async _backupProfiles (profilePaths) {
+    return Promise.all(profilePaths.map(profilePath => this._backupProfile(profilePath)))
+  }
+
+  async _backupProfile (profilePath) {
+    if (!await this._fileExists(profilePath)) return
+    return new Promise((resolve) => {
+      const backupPath = `${profilePath}_${Date.now()}.bak`
+      const stream = fs.createReadStream(profilePath).pipe(fs.createWriteStream(backupPath))
+      stream.on('close', resolve)
+    })
+  }
+
   async _readProfiles (profilePaths) {
-    const profiles = await Promise.all(profilePaths.map(profilePath => this._readOrCreateProfile(profilePath)))
-    return profiles.filter(profile => !!profile) // filter out null profiles (unsupported encoding)
+    return Promise.all(profilePaths.map(profilePath => this._readOrCreateProfile(profilePath)))
   }
 
   async _readOrCreateProfile (profilePath) {
     if (!await this._fileExists(profilePath)) {
       await this._createProfile(profilePath)
-      this.runlog.debug('creating blank profile %o', profilePath)
-      // for brand new empty profiles, we can choose the encoding
-      return { path: profilePath, contents: '', encoding: 'utf8' }
+      return { path: profilePath, contents: '' }
     }
-    const fileBuffer = await readFileAsync(profilePath)
-    const detectedEncoding = await encoding.detectEncodingFromBuffer(fileBuffer)
-    if (detectedEncoding.seemsBinary || !encoding.encodingExists(detectedEncoding.encoding)) {
-      // we can't safely read/write from this file, so we will skip it
-      return null
-    }
-    const fileContents = encoding.decode(fileBuffer, detectedEncoding.encoding)
-    return { path: profilePath, contents: fileContents, encoding: detectedEncoding.encoding }
+    const contents = await readFileAsync(profilePath, 'utf8')
+    return { path: profilePath, contents }
   }
 
   async _createProfile (profilePath) {
+    this.runlog.debug('creating blank profile %o', profilePath)
     await makeDir(path.resolve(profilePath, '..'))
     // we don't need the file descriptor, so immediately close the file
     return closeAsync(await openAsync(profilePath, 'a')) // `a` flag opens file for appending; creates empty if it doesn't exist
@@ -151,11 +159,12 @@ class Profile {
 
   _isRunnable (sh) {
     return new Promise((resolve) => {
-      exec(`${sh} -c "echo hello"`, (err, stdout, stderr) => {
+      const child = exec(`command -v ${sh}`, (err) => {
         if (err) return resolve(false)
-        if (![stdout, stderr].some(out => out.includes('hello'))) return resolve(false)
-        resolve(true)
       })
+      child.on('error', () => resolve(false))
+      child.on('close', (code) => resolve(code === 0))
+      child.on('exit', (code) => resolve(code === 0))
     })
   }
 

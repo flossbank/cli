@@ -30,8 +30,6 @@
 		"debug": "^4.1.1",
 		"diffy": "^2.1.0",
 		"husky": "^3.0.5",
-		"iconv-lite": "^0.5.1",
-		"jschardet": "^2.1.1",
 		"ls": "^0.2.1",
 		"make-dir": "^3.0.2",
 		"minimist": "^1.2.0",
