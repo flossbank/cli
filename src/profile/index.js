@@ -1,71 +1,162 @@
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
-const { readFileAsync, writeFileAsync } = require('../util/asyncFs')
+const encoding = require('./encoding')
+const { exec } = require('child_process')
+const makeDir = require('make-dir')
+const { readFileAsync, writeFileAsync, openAsync, closeAsync } = require('../util/asyncFs')
 
+function inHome (...filepaths) {
+  return path.join(os.homedir(), ...filepaths)
+}
+
+function inConfig (...filepaths) {
+  return inHome('.config', ...filepaths)
+}
+
+const SUPPORTED_SHELLS = {
+  shellFormat: {
+    sh: [inHome('.profile')],
+    csh: [inHome('.cshrc')],
+    tcsh: [inHome('.tcshrc')],
+    ksh: [inHome('.kshrc')],
+    zsh: [inHome('.zshrc')],
+    bash: [inHome('.bashrc'), inHome('.bash_profile')]
+  },
+  powerFormat: {
+    pwsh: os.platform !== 'win32' // pwsh stores its profile in different places depending on the OS
+      ? [inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
+      : [inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')],
+    'powershell.exe': [inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
+  }
+}
+
+/**
+ * Profile is responsible for detecting appropriate shell profile files and appending/removing the
+ *  source command to/from those shell profiles. Profile attempts to run many different shell variants
+ *  to determine the appropriate paths to write to. Shells which are runnable are eligible to have their
+ *  respective profiles updated with the source command.
+ */
 class Profile {
-  async addToProfiles (data) {
-    return this._updateProfiles(
-      prof => !prof.profile.includes(data),
-      prof => prof.profile + this._pad(data)
+  constructor ({ alias, runlog }) {
+    this.alias = alias
+    this.runlog = runlog
+  }
+
+  async installToProfiles () {
+    return this._updateProfiles({ install: true })
+  }
+
+  async uninstallFromProfiles () {
+    return this._updateProfiles({ uninstall: true })
+  }
+
+  async _updateProfiles ({ install, uninstall }) {
+    const { detectedShellFormatProfiles, detectedPowerFormatProfiles } = await this._detectProfiles()
+
+    this.runlog.record('detectedShellFormatProfiles', detectedShellFormatProfiles)
+    this.runlog.record('detectedPowerFormatProfiles', detectedPowerFormatProfiles)
+
+    const shellProfiles = await this._readProfiles(detectedShellFormatProfiles)
+    const powerProfiles = await this._readProfiles(detectedPowerFormatProfiles)
+
+    await Promise.all(
+      shellProfiles.map(profile => {
+        if (install) this._appendLineToProfile(profile, this.alias.getShellSourceCommand())
+        if (uninstall) this._removeLineFromProfile(profile, this.alias.getShellSourceCommand())
+      })
+    )
+    await Promise.all(
+      powerProfiles.map(profile => {
+        if (install) this._appendLineToProfile(profile, this.alias.getPowerSourceCommand())
+        if (uninstall) this._removeLineFromProfile(profile, this.alias.getPowerSourceCommand())
+      })
     )
   }
 
-  async removeFromProfiles (data) {
-    return this._updateProfiles(
-      prof => prof.profile.includes(data),
-      prof => {
-        const out = []
-        for (const line of prof.profile.split(os.EOL)) {
-          if (line !== data) { out.push(line) }
-        }
-        return out.join(os.EOL)
-      }
-    )
+  async _appendLineToProfile (profile, line) {
+    const { contents } = profile
+    if (contents.includes(line)) return // don't double add
+    return writeFileAsync(profile.path, `${contents}${this._pad(line)}`, { encoding: profile.encoding })
   }
 
-  async _updateProfiles (predicate = () => false, updateFn = () => { }) {
-    const profilePaths = await this._detectProfiles()
-    const profiles = await Promise.all(profilePaths
-      .map(profPath => readFileAsync(profPath, 'utf8')
-        .then((prof) => ({ profile: prof, path: profPath }))))
-    const profilesToUpdate = profiles.filter(prof => predicate(prof))
-    if (!profilesToUpdate.length) { return }
-    return Promise.all(profilesToUpdate.map(prof => writeFileAsync(prof.path, updateFn(prof))))
+  async _removeLineFromProfile (profile, line) {
+    const { contents } = profile
+    if (!contents.includes(line)) return // nothing to remove
+    const cleanProfile = contents.split(os.EOL).filter(existingLine => existingLine !== line).join(os.EOL)
+    return writeFileAsync(profile.path, cleanProfile, { encoding: profile.encoding })
   }
 
   async _detectProfiles () {
-    // ideas from https://github.com/nvm-sh/nvm/blob/master/install.sh
-    const detectedProfiles = []
-    if (process.env.PROFILE && await this._fileExists(process.env.PROFILE)) {
-      detectedProfiles.push(process.env.PROFILE)
-    }
+    const detectedShellFormatProfiles = new Set()
+    const detectedPowerFormatProfiles = new Set()
 
-    if (process.env.BASH_VERSION) {
-      const bashRc = path.join(os.homedir(), '.bashrc')
-      const bashProf = path.join(os.homedir(), '.bash_profile')
-      if (await this._fileExists(bashRc)) {
-        detectedProfiles.push(bashRc)
-      } else if (await this._fileExists(bashProf)) {
-        detectedProfiles.push(bashProf)
-      }
-    } else if (process.env.ZSH_VERSION) {
-      detectedProfiles.push(path.join(os.homedir(), '.zshrc'))
-    }
+    const shellFormat = Object.keys(SUPPORTED_SHELLS.shellFormat).map(async shell => {
+      const runnable = await this._isRunnable(shell)
+      return ({
+        shell,
+        runnable,
+        profiles: SUPPORTED_SHELLS.shellFormat[shell]
+      })
+    })
+    const powerFormat = Object.keys(SUPPORTED_SHELLS.powerFormat).map(async shell => {
+      const runnable = await this._isRunnable(shell)
+      return ({
+        shell,
+        runnable,
+        profiles: SUPPORTED_SHELLS.powerFormat[shell]
+      })
+    })
 
-    if (!detectedProfiles.length) {
-      for (const prof of ['.profile', '.bashrc', '.bash_profile', '.zshrc']) {
-        const profPath = path.join(os.homedir(), prof)
-        if (await this._fileExists(profPath)) {
-          detectedProfiles.push(profPath)
-        }
-      }
-    }
+    ;(await Promise.all(shellFormat)).filter(res => res.runnable).forEach(sh => {
+      detectedShellFormatProfiles.add(...sh.profiles)
+    })
+    ;(await Promise.all(powerFormat)).filter(res => res.runnable).forEach(sh => {
+      detectedPowerFormatProfiles.add(...sh.profiles)
+    })
 
-    if (!detectedProfiles.length) {
-      throw new Error('Profile not found.')
+    return {
+      detectedShellFormatProfiles: [...detectedShellFormatProfiles],
+      detectedPowerFormatProfiles: [...detectedPowerFormatProfiles]
     }
-    return detectedProfiles
+  }
+
+  async _readProfiles (profilePaths) {
+    const profiles = await Promise.all(profilePaths.map(profilePath => this._readOrCreateProfile(profilePath)))
+    return profiles.filter(profile => !!profile) // filter out null profiles (unsupported encoding)
+  }
+
+  async _readOrCreateProfile (profilePath) {
+    if (!await this._fileExists(profilePath)) {
+      await this._createProfile(profilePath)
+      this.runlog.debug('creating blank profile %o', profilePath)
+      // for brand new empty profiles, we can choose the encoding
+      return { path: profilePath, contents: '', encoding: 'utf8' }
+    }
+    const fileBuffer = await readFileAsync(profilePath)
+    const detectedEncoding = await encoding.detectEncodingFromBuffer(fileBuffer)
+    if (detectedEncoding.seemsBinary || !encoding.encodingExists(detectedEncoding.encoding)) {
+      // we can't safely read/write from this file, so we will skip it
+      return null
+    }
+    const fileContents = encoding.decode(fileBuffer, detectedEncoding.encoding)
+    return { path: profilePath, contents: fileContents, encoding: detectedEncoding.encoding }
+  }
+
+  async _createProfile (profilePath) {
+    await makeDir(path.resolve(profilePath, '..'))
+    // we don't need the file descriptor, so immediately close the file
+    return closeAsync(await openAsync(profilePath, 'a')) // `a` flag opens file for appending; creates empty if it doesn't exist
+  }
+
+  _isRunnable (sh) {
+    return new Promise((resolve) => {
+      exec(`${sh} -c "echo hello"`, (err, stdout, stderr) => {
+        if (err) return resolve(false)
+        if (![stdout, stderr].some(out => out.includes('hello'))) return resolve(false)
+        resolve(true)
+      })
+    })
   }
 
   _fileExists (filePath) {
