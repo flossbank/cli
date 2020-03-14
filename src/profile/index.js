@@ -24,9 +24,9 @@ const SUPPORTED_SHELLS = {
     bash: [inHome('.bashrc'), inHome('.bash_profile')]
   },
   powerFormat: {
-    pwsh: os.platform !== 'win32' // pwsh stores its profile in different places depending on the OS
+    pwsh: os.platform() !== 'win32' // pwsh stores its profile in different places depending on the OS
       ? [inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
-      : [inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')],
+      : [inHome('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')],
     'powershell.exe': [inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
   }
 }
