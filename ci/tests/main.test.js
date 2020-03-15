@@ -118,9 +118,25 @@ test.serial('integ: install to shell profiles', async (t) => {
     ...runlog.detectedShellFormatProfiles,
     ...runlog.detectedPowerFormatProfiles
   ]
+  t.true(profilePaths.length > 0)
+  t.log('profile paths:', profilePaths)
   const profiles = await Promise.all(profilePaths.map(profile => readFileAsync(profile)))
 
-  t.log('profile paths:', profilePaths)
-
   t.true(profiles.every(profile => profile.includes('flossbank_aliases')))
+})
+
+test.serial('integ: uninstall from shell profiles', async (t) => {
+  await runFlossbank(['uninstall'])
+
+  const runlog = await getLastRunlog()
+  t.deepEqual(runlog.arguments, { hasArgs: true, uninstall: true })
+  const profilePaths = [
+    ...runlog.detectedShellFormatProfiles,
+    ...runlog.detectedPowerFormatProfiles
+  ]
+  t.true(profilePaths.length > 0)
+  t.log('profile paths:', profilePaths)
+  const profiles = await Promise.all(profilePaths.map(profile => readFileAsync(profile)))
+
+  t.true(profiles.every(profile => !profile.includes('flossbank_aliases')))
 })
