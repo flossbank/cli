@@ -10,7 +10,9 @@ const keys = {
   SEEN_AD_IDS: 'seenAdIds',
   EXIT_REASON: 'exitReason',
   PASSTHROUGH_MODE: 'passthrough',
-  MANUALLY_DISABLED: 'manuallyDisabled'
+  MANUALLY_DISABLED: 'manuallyDisabled',
+  DETECTED_SHELL_PROFILES: 'detectedShellFormatProfiles',
+  DETECTED_POWER_PROFILES: 'detectedPowerFormatProfiles'
 }
 
 // to get stringified errors

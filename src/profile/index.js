@@ -55,8 +55,8 @@ class Profile {
   async _updateProfiles ({ install, uninstall }) {
     const { detectedShellFormatProfiles, detectedPowerFormatProfiles } = await this._detectProfiles()
 
-    this.runlog.record('detectedShellFormatProfiles', detectedShellFormatProfiles)
-    this.runlog.record('detectedPowerFormatProfiles', detectedPowerFormatProfiles)
+    this.runlog.record(this.runlog.keys.DETECTED_SHELL_PROFILES, detectedShellFormatProfiles)
+    this.runlog.record(this.runlog.keys.DETECTED_POWER_PROFILES, detectedPowerFormatProfiles)
 
     await this._backupProfiles([...detectedShellFormatProfiles, ...detectedPowerFormatProfiles])
 
