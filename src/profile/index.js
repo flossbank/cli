@@ -21,8 +21,8 @@ const SUPPORTED_SHELLS = {
     // ref: https://web.archive.org/web/20160403120601/http://www.unixnote.com/2010/05/different-unix-shell.html
     sh: [inHome('.profile')],
     ksh: [inHome('.kshrc')],
-    zsh: [inHome('.zshrc')],
-    bash: [inHome('.bashrc'), inHome('.bash_profile')]
+    zsh: [inHome('.zshrc'), inHome('.profile'), inHome('.zprofile')],
+    bash: [inHome('.bashrc'), inHome('.profile'), inHome('.bash_profile')]
   },
   powerFormat: {
     pwsh: os.platform() !== 'win32' // pwsh stores its profile in different places depending on the OS
@@ -65,14 +65,14 @@ class Profile {
 
     await Promise.all(
       shellProfiles.map(profile => {
-        if (install) this._appendLineToProfile(profile, this.alias.getShellSourceCommand())
-        if (uninstall) this._removeLineFromProfile(profile, this.alias.getShellSourceCommand())
+        if (install) return this._appendLineToProfile(profile, this.alias.getShellSourceCommand())
+        if (uninstall) return this._removeLineFromProfile(profile, this.alias.getShellSourceCommand())
       })
     )
     await Promise.all(
       powerProfiles.map(profile => {
-        if (install) this._appendLineToProfile(profile, this.alias.getPowerSourceCommand())
-        if (uninstall) this._removeLineFromProfile(profile, this.alias.getPowerSourceCommand())
+        if (install) return this._appendLineToProfile(profile, this.alias.getPowerSourceCommand())
+        if (uninstall) return this._removeLineFromProfile(profile, this.alias.getPowerSourceCommand())
       })
     )
   }
@@ -80,7 +80,7 @@ class Profile {
   async _appendLineToProfile (profile, line) {
     const { contents } = profile
     if (contents.includes(line)) return // don't double add
-    return writeFileAsync(profile.path, `${contents}${this._pad(line)}`)
+    return writeFileAsync(profile.path, this._pad(line), { flag: 'a' }) // append
   }
 
   async _removeLineFromProfile (profile, line) {
@@ -157,15 +157,35 @@ class Profile {
     return closeAsync(await openAsync(profilePath, 'a')) // `a` flag opens file for appending; creates empty if it doesn't exist
   }
 
-  _isRunnable (sh) {
-    return new Promise((resolve) => {
-      const child = exec(`command -v ${sh}`, (err) => {
-        if (err) return resolve(false)
+  async _isRunnable (sh) {
+    const runChecks = [
+      new Promise((resolve) => {
+        const child = exec(`command -v ${sh}`, (err) => {
+          if (err) return resolve(false)
+        })
+        child.on('error', () => resolve(false))
+        child.on('close', (code) => resolve(code === 0))
+        child.on('exit', (code) => resolve(code === 0))
+      }),
+      new Promise((resolve) => {
+        const child = exec(`where ${sh}`, (err) => {
+          if (err) return resolve(false)
+        })
+        child.on('error', () => resolve(false))
+        child.on('close', (code) => resolve(code === 0))
+        child.on('exit', (code) => resolve(code === 0))
+      }),
+      new Promise((resolve) => {
+        const child = exec(`Get-Command ${sh}`, (err) => {
+          if (err) return resolve(false)
+        })
+        child.on('error', () => resolve(false))
+        child.on('close', (code) => resolve(code === 0))
+        child.on('exit', (code) => resolve(code === 0))
       })
-      child.on('error', () => resolve(false))
-      child.on('close', (code) => resolve(code === 0))
-      child.on('exit', (code) => resolve(code === 0))
-    })
+    ]
+    const runResults = await Promise.all(runChecks)
+    return runResults.some(Boolean)
   }
 
   _fileExists (filePath) {
