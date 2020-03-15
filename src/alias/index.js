@@ -38,7 +38,7 @@ class Alias {
   }
 
   getShellSourceCommand () {
-    return `. "${this.getShellSourceFilePath()}"`
+    return `. "${this.getShellSourceFilePath()}" > /dev/null 2>&1`
   }
 
   getPowerSourceCommand () {
