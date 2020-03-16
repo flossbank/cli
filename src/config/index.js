@@ -4,7 +4,8 @@ const {
   PROJECT_NAME,
   CONFIG_API_KEY,
   CONFIG_ALIASES,
-  CONFIG_LAST_RUNLOG
+  CONFIG_LAST_RUNLOG,
+  DEFAULT_ALIASES
 } = require('../constants')
 
 function Config () {
@@ -17,18 +18,20 @@ Config.prototype.getPath = function getPath () {
   return path.resolve(this.conf.path, '..')
 }
 
-Config.prototype.addAlias = function addAlias (cmd, alias) {
-  const existingAliases = this.getAliases() || {}
-  return this.conf.set(CONFIG_ALIASES, Object.assign({}, existingAliases, { [cmd]: alias }))
+Config.prototype.setAlias = function addAlias (cmd, variant, alias) {
+  const existingAliases = this.getAliases() || DEFAULT_ALIASES
+  const nextVariant = Object.assign({}, existingAliases[variant], { [cmd]: alias })
+  return this.conf.set(CONFIG_ALIASES, Object.assign({}, existingAliases, { [variant]: nextVariant }))
 }
 
-Config.prototype.removeAlias = function removeAlias (cmd, unalias) {
-  const existingAliases = this.getAliases() || {}
-  return this.conf.set(CONFIG_ALIASES, Object.assign({}, existingAliases, { [cmd]: unalias }))
+Config.prototype.deleteAlias = function deleteAlias (cmd, variant) {
+  const existingAliases = this.getAliases() || DEFAULT_ALIASES
+  delete existingAliases[variant][cmd]
+  return this.conf.set(CONFIG_ALIASES, existingAliases)
 }
 
 Config.prototype.getAliases = function getAliases () {
-  return this.conf.get(CONFIG_ALIASES)
+  return this.conf.get(CONFIG_ALIASES) || DEFAULT_ALIASES
 }
 
 Config.prototype.getApiKey = function getApiKey () {

@@ -10,7 +10,9 @@ const keys = {
   SEEN_AD_IDS: 'seenAdIds',
   EXIT_REASON: 'exitReason',
   PASSTHROUGH_MODE: 'passthrough',
-  MANUALLY_DISABLED: 'manuallyDisabled'
+  MANUALLY_DISABLED: 'manuallyDisabled',
+  DETECTED_SHELL_PROFILES: 'detectedShellFormatProfiles',
+  DETECTED_POWER_PROFILES: 'detectedPowerFormatProfiles'
 }
 
 // to get stringified errors
@@ -32,6 +34,8 @@ class Runlog {
     this.debugger = debug
     this.tempWriter = tempWriter
     this.keys = keys
+
+    this.records.startTime = Date.now()
   }
 
   get enabled () {
@@ -54,7 +58,8 @@ class Runlog {
 
   async write (reason) {
     if (!this.enabled) return
-    this.record(keys.EXIT_REASON, reason, true)
+    this.records.EXIT_REASON = reason
+    this.records.endTime = Date.now()
     const path = await this.tempWriter.write(JSON.stringify(this.records, replaceErrors))
     this.config.setLastRunlog(path)
   }
