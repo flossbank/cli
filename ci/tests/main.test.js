@@ -23,7 +23,7 @@ test.after.always(() => {
   process.chdir(path.resolve(__dirname, '..'))
 })
 
-test.serial('integ: run pm with ads (npm)', async (t) => {
+test.serial('integ: npm: run pm with ads', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['npm', 'install'])
   const nodeModules = await util.getNodeModules()
@@ -37,7 +37,20 @@ test.serial('integ: run pm with ads (npm)', async (t) => {
   t.false(runlog.passthrough)
 })
 
-test.serial('integ: run pm with ads (pip)', async (t) => {
+test.serial('integ: npm: run in passthru mode when auth fails', async (t) => {
+  await util.setInvalidApiKey()
+  await util.runFlossbank(['npm', 'install'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.true(runlog.passthrough)
+  t.is(runlog.errors.length, 1) // only 1 error (authentication)
+})
+
+test.serial('integ: pip: run pm with ads', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['pip', 'install', 'simplejson', '--user'])
   const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
@@ -51,17 +64,17 @@ test.serial('integ: run pm with ads (pip)', async (t) => {
   t.false(runlog.passthrough)
 })
 
-test.serial('integ: run in passthru mode when auth fails', async (t) => {
-  await util.setInvalidApiKey()
-  await util.runFlossbank(['npm', 'install'])
-  const nodeModules = await util.getNodeModules()
-  t.log('installed node modules:', nodeModules)
-  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+test.serial('integ: pip: run in passthru mode with invalid pip args', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['pip', 'install', '-r']) // no requirements file specified
+  const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
+  t.log('installed python packages:', pythonPackages)
+  t.true(pythonPackages.length === 0)
 
   const runlog = await util.getLastRunlog()
   t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'pip install -r')
   t.true(runlog.passthrough)
-  t.is(runlog.errors.length, 1) // only 1 error (authentication)
 })
 
 test.serial('integ: install to shell profiles', async (t) => {
