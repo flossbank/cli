@@ -37,7 +37,7 @@ test.serial('integ: run pm with ads (npm)', async (t) => {
   t.false(runlog.passthrough)
 })
 
-test.serial.only('integ: run pm with ads (pip)', async (t) => {
+test.serial('integ: run pm with ads (pip)', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['pip', 'install', 'simplejson', '--user'])
   const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
