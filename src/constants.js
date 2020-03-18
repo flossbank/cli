@@ -17,7 +17,7 @@ module.exports = {
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
   SHEBANG: '#!/usr/bin/env bash',
-  SUPPORTED_PMS: ['npm', 'yarn'],
+  SUPPORTED_PMS: ['npm', 'yarn', 'pip'],
   USAGE: `
   Usage:
     flossbank [option]

@@ -134,6 +134,9 @@ Ui.prototype.showCompletion = async function showCompletion () {
 
   if (this.pmError) {
     console.error(typeof this.pmError === 'number' ? `Exit code: ${this.pmError}` : this.pmError)
+    if (this.pmOutput) {
+      process.stdout.write(this.pmOutput)
+    }
   }
 
   const adsSummary = summary(this.getSeenAds())
