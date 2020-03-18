@@ -1,4 +1,3 @@
-/* eslint-disable */
 const test = require('ava')
 const path = require('path')
 const { promisify } = require('util')
