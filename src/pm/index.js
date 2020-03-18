@@ -1,87 +1,119 @@
+const { spawn } = require('child_process')
+const { supportsColor } = require('chalk')
 const { SUPPORTED_PMS } = require('../constants')
 const ci = require('ci-info')
 
-function Pm ({ runlog }) {
-  this.runlog = runlog
-  this.pm = null
-  this.pmCmd = null
-}
-
-Pm.prototype.init = async function init () {
-  // this takes the first arg (which should be the package manager)
-  // and removes it from the argv (so the actual package manager has
-  // a clean argv to parse)
-  const pmArg = process.argv.splice(2, 1).pop()
-  this.pmCmd = [pmArg, ...process.argv.slice(2)].join(' ')
-
-  const supportedPm = SUPPORTED_PMS.includes(pmArg)
-  this.supportedPm = supportedPm
-  if (!supportedPm) return { supportedPm }
-
-  this.pm = require(`./${pmArg}`)
-
-  const self = this
-
-  const noAdsPm = () => {
-    this.runlog.write().then(() => {
-      self.pm.start({ silent: false })
-    })
+class Pm {
+  constructor ({ runlog }) {
+    this.runlog = runlog
+    this.pm = null
+    this.pmArg = null
+    this.pmCmd = null
   }
-  const adsPm = (cb) => { self.pm.start({ silent: true }, cb) }
 
-  return { supportedPm, adsPm, noAdsPm }
-}
-
-Pm.prototype.getPmCmd = function getPmCmd () {
-  return this.pmCmd
-}
-
-Pm.prototype.shouldShowAds = function shouldShowAds () {
-  if (!this.supportedPm) return false
-  const supportedVerb = this.pm.isSupportedVerb(this.pmCmd)
-  if (this.runlog.enabled) { // allow ads in CI if in debug mode
-    return supportedVerb
+  async init () {
+    // this takes the first arg (which should be the package manager)
+    // and removes it from the argv (so the actual package manager has
+    // a clean argv to parse)
+    this.pmArg = process.argv.splice(2, 1).pop().toLowerCase()
+    this.pmCmd = [this.pmArg, ...process.argv.slice(2)].join(' ')
+    const supportedPm = SUPPORTED_PMS.includes(this.pmArg)
+    this.supportedPm = supportedPm
+    if (!supportedPm) { return { supportedPm } }
+    this.pm = require(`./${this.pmArg}`)
+    const self = this
+    const noAdsPm = () => { self.runlog.write().then(() => { self.start({ silent: false }) }) }
+    const adsPm = (cb) => { self.start({ silent: true }, cb) }
+    return { supportedPm, adsPm, noAdsPm }
   }
-  return supportedVerb && !ci.isCI
-}
 
-Pm.prototype.getTopLevelPackages = async function getTopLevelPackages () {
-  try {
-    const tlp = await this.pm.getTopLevelPackages()
-    return tlp
-  } catch (e) {
-    this.runlog.error('failed to get top level packages %O', e)
+  getPmCmd () {
+    return this.pmCmd
+  }
+
+  shouldShowAds () {
+    if (!this.supportedPm) return false
+    if (!this._isDefined('isSupportedVerb')) return false
+
+    const supportedVerb = this.pm.isSupportedVerb(this.pmCmd)
+    if (this.runlog.enabled) { // allow ads in CI if in debug mode
+      return supportedVerb
+    }
+    return supportedVerb && !ci.isCI
+  }
+
+  start (opts = {}, cb) {
+    if (this._isDefined('start')) {
+      return this.pm.start(opts, cb)
+    }
+    // default start
+    if (!opts.silent) {
+      return spawn(this.pmArg, process.argv.slice(2), { stdio: 'inherit', shell: true })
+    }
+    if (supportsColor) {
+      process.env.FORCE_COLOR = 3
+    }
+    const child = spawn(this.pmArg, process.argv.slice(2), { shell: true })
+    child.on('error', (err) => cb(err))
+    child.on('exit', (code) => cb(null, { exit: true, code }))
+    child.stdout.on('data', (chunk) => cb(null, { stdout: chunk }))
+    child.stderr.on('data', (chunk) => cb(null, { stderr: chunk }))
+  }
+
+  async getTopLevelPackages () {
+    if (this._isDefined('getTopLevelPackages')) {
+      try {
+        const tlp = await this.pm.getTopLevelPackages()
+        return tlp
+      } catch (e) {
+        this.runlog.error('failed to get top level packages %O', e)
+      }
+    }
+    // default getTopLevelPackages
     return []
   }
-}
 
-Pm.prototype.getRegistry = async function getRegistry () {
-  try {
-    const registry = await this.pm.getRegistry()
-    return registry
-  } catch (e) {
-    this.runlog.error('failed to get registry %O', e)
+  async getRegistry () {
+    if (this._isDefined('getRegistry')) {
+      try {
+        const registry = await this.pm.getRegistry()
+        return registry
+      } catch (e) {
+        this.runlog.error('failed to get registry %O', e)
+      }
+    }
+    // default getRegistry
     return null
   }
-}
 
-Pm.prototype.getLanguage = async function getLanguage () {
-  try {
-    const language = await this.pm.getLanguage()
-    return language
-  } catch (e) {
-    this.runlog.error('failed to get language %O', e)
+  async getLanguage () {
+    if (this._isDefined('getLanguage')) {
+      try {
+        const language = await this.pm.getLanguage()
+        return language
+      } catch (e) {
+        this.runlog.error('failed to get language %O', e)
+      }
+    }
+    // default getLanguage
     return null
   }
-}
 
-Pm.prototype.getVersion = async function getVersion () {
-  try {
-    const version = await this.pm.getVersion()
-    return version
-  } catch (e) {
-    this.runlog.error('failed to get pm version %O', e)
+  async getVersion () {
+    if (this._isDefined('getVersion')) {
+      try {
+        const version = await this.pm.getVersion()
+        return version
+      } catch (e) {
+        this.runlog.error('failed to get pm version %O', e)
+      }
+    }
+    // default getVersion
     return null
+  }
+
+  _isDefined (fn) {
+    return typeof this.pm[fn] === 'function'
   }
 }
 
