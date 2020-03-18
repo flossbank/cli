@@ -23,7 +23,7 @@ test.after.always(() => {
   process.chdir(path.resolve(__dirname, '..'))
 })
 
-test.serial('integ: npm: run pm with ads', async (t) => {
+test.serial('integ: npm: using package.json run pm with ads', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['npm', 'install'])
   const nodeModules = await util.getNodeModules()
@@ -33,6 +33,20 @@ test.serial('integ: npm: run pm with ads', async (t) => {
   const runlog = await util.getLastRunlog()
   t.true(runlog.supportedPm)
   t.is(runlog.pmCmd, 'npm install')
+  t.true(runlog.seenAdIds.length > 0)
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: npm: specific package run pm with ads', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['npm', 'install', 'js-deep-equals'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.includes('js-deep-equals'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'npm install js-deep-equals')
   t.true(runlog.seenAdIds.length > 0)
   t.false(runlog.passthrough)
 })
@@ -50,7 +64,21 @@ test.serial('integ: npm: run in passthru mode when auth fails', async (t) => {
   t.is(runlog.errors.length, 1) // only 1 error (authentication)
 })
 
-test.serial('integ: pip: run pm with ads', async (t) => {
+test.serial('integ: pip: with requirements file run pm with ads', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['pip', 'install', '-r', 'requirements.txt', '--user'])
+  const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
+  t.log('installed python packages:', pythonPackages)
+  t.true(pythonPackages.includes('simplejson'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'pip install -r requirements.txt --user')
+  t.true(runlog.seenAdIds.length > 0)
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: pip: with specific package run pm with ads', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['pip', 'install', 'simplejson', '--user'])
   const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
@@ -75,6 +103,20 @@ test.serial('integ: pip: run in passthru mode with invalid pip args', async (t) 
   t.true(runlog.supportedPm)
   t.is(runlog.pmCmd, 'pip install -r')
   t.true(runlog.passthrough)
+})
+
+test.serial('integ: pip: run in passthru mode when auth fails', async (t) => {
+  await util.setInvalidApiKey()
+  await util.runFlossbank(['pip', 'install', 'simplejson', '--user'])
+  const pythonPackages = await util.getPythonPackages(t.context.pythonDepDir)
+  t.log('installed python packages:', pythonPackages)
+  t.true(pythonPackages.includes('simplejson'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'pip install simplejson --user')
+  t.true(runlog.passthrough)
+  t.is(runlog.errors.length, 1) // only 1 error (authentication)
 })
 
 test.serial('integ: install to shell profiles', async (t) => {
