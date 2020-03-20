@@ -14,15 +14,15 @@
 		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm t && npm run build",
 		"build": "webpack",
-		"test": "standard && nyc ava --match=\"!*integ*\"",
-		"integ-tests": "ava -v --match=\"*integ*\""
+		"test": "standard && nyc ava --timeout=15s --match=\"!*integ*\"",
+		"integ-tests": "ava -v --timeout=1m --match=\"*integ*\""
 	},
 	"dependencies": {
 		"update-notifier": "^4.0.0"
 	},
 	"devDependencies": {
 		"abort-controller": "^3.0.0",
-		"ava": "^2.4.0",
+		"ava": "^3.5.0",
 		"boxen": "^4.1.0",
 		"chalk": "^2.4.2",
 		"ci-info": "^2.0.0",

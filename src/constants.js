@@ -5,7 +5,8 @@ module.exports = {
   ROUTES: {
     START: 'session/start',
     COMPLETE: 'session/complete',
-    SEND_AUTH: 'user/register'
+    SEND_AUTH: 'user/register',
+    CHECK_AUTH: 'user/check'
   },
   SUPPORTED_ARGS: ['help', 'version', 'auth', 'install', 'uninstall', 'runlog'],
   SOURCE_VARIANT_SHELL: 'shell',

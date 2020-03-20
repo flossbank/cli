@@ -51,6 +51,44 @@ test('fetchAdBatch | creates request', async (t) => {
   scope.done()
 })
 
+test('checkAuth | creates request', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/user/check')
+    .reply(200)
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
+  sinon.spy(api, 'createRequest')
+  const res = await api.checkAuth('email', 'apiKey')
+  t.true(api.createRequest.calledWith(ROUTES.CHECK_AUTH, 'POST', { email: 'email', apiKey: 'apiKey' }))
+  t.true(res)
+  scope.done()
+})
+
+test('checkAuth | considers 429 as failure', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/user/check')
+    .reply(429)
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
+  sinon.spy(api, 'createRequest')
+  t.false(await api.checkAuth('email', 'apiKey'))
+  scope.done()
+})
+
+test('checkAuth | considers 401 as failure', async (t) => {
+  const scope = nock('https://api.flossbank.com')
+    .post('/user/check')
+    .reply(401)
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
+  sinon.spy(api, 'createRequest')
+  t.false(await api.checkAuth('email', 'apiKey'))
+  scope.done()
+})
+
+test('checkAuth | fetch failure means no', async (t) => {
+  const api = new Api({ config: t.context.config, runlog: t.context.runlog })
+  api.createRequest = sinon.stub().returns(['some bad url that causes fetch to throw', {}])
+  t.false(await api.checkAuth('email', 'apiKey'))
+})
+
 test('completeSession | creates request', async (t) => {
   const scope = nock('https://api.flossbank.com')
     .post('/session/complete')

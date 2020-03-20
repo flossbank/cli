@@ -60,6 +60,19 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
   })
 }
 
+Api.prototype.checkAuth = async function checkAuth (email, apiKey) {
+  const [url, options] = this.createRequest(ROUTES.CHECK_AUTH, 'POST', { email, apiKey })
+
+  try {
+    const res = await fetch(url, options)
+    if (!res.ok) return false
+    return true
+  } catch (e) {
+    this.runlog.error('could not check auth: %O', e)
+    return false
+  }
+}
+
 Api.prototype.completeSession = async function completeSession (sessionData = {}) {
   const seenAdIds = this.seen.map(ad => ad.id)
   const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds, ...sessionData })

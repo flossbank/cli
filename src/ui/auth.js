@@ -27,7 +27,7 @@ exports.getAuthToken = async function getAuthToken () {
 }
 
 exports.authenticationFailed = function authenticationFailed () {
-  console.log(`${chalk.red('✖')} ${chalk.white.bold('Authentication failed: invalid token')}`)
+  console.log(`${chalk.red('✖')} ${chalk.white.bold('Authentication failed: invalid token. Please try again or email support@flossbank.com for help.')}`)
 }
 
 exports.authenticationSucceeded = function authenticationSucceeded () {
