@@ -64,7 +64,11 @@ module.exports = async () => {
   }
 
   if (!apiKey) {
-    const newApiKey = await ui.authenticate({ haveApiKey: !!apiKey, sendAuthEmail: api.sendAuthEmail.bind(api) })
+    const newApiKey = await ui.authenticate({
+      haveApiKey: !!apiKey,
+      sendAuthEmail: api.sendAuthEmail.bind(api),
+      checkAuth: api.checkAuth.bind(api)
+    })
     if (!newApiKey) {
       runlog.record(keys.AUTH_FLOW_FAILED, true)
       runlog.record(keys.PASSTHROUGH_MODE, true)

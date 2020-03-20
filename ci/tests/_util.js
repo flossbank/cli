@@ -11,30 +11,30 @@ const rm = promisify(rimraf)
 const INTEG_TEST_KEY = 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34b48357d1'
 const config = new Config()
 
-export function setIntegApiKey () {
+exports.setIntegApiKey = function setIntegApiKey () {
   return config.setApiKey(INTEG_TEST_KEY)
 }
 
-export function setInvalidApiKey () {
+exports.setInvalidApiKey = function setInvalidApiKey () {
   return config.setApiKey('very-invalid-api-key')
 }
 
-export function getBinPath () {
+exports.getBinPath = function getBinPath () {
   return path.resolve(process.cwd(), '../../', 'bin.js')
 }
 
-export async function deleteInstalledDeps (pythonDepDir) {
+exports.deleteInstalledDeps = async function deleteInstalledDeps (pythonDepDir) {
   return Promise.all([
     rm('node_modules'),
     rm(`${pythonDepDir}/*`)
   ])
 }
 
-export async function getNodeModules () {
+exports.getNodeModules = async function getNodeModules () {
   return ls('./node_modules/*').map(dir => dir.name)
 }
 
-export function resolvePythonDepDir () {
+exports.resolvePythonDepDir = function resolvePythonDepDir () {
   return new Promise((resolve, reject) => {
     execFile('python', ['-m', 'site', '--user-site'], (err, stdout) => {
       if (err) return reject(err)
@@ -43,30 +43,30 @@ export function resolvePythonDepDir () {
   })
 }
 
-export async function getPythonPackages (pythonDepDir) {
+exports.getPythonPackages = async function getPythonPackages (pythonDepDir) {
   return ls(`${pythonDepDir}/*`).map(dir => dir.name)
 }
 
-export function runFlossbank (args) {
+exports.runFlossbank = function runFlossbank (args) {
   return new Promise((resolve, reject) => {
-    execFile('node', [getBinPath()].concat(args), (err, stdout) => {
+    execFile('node', [exports.getBinPath()].concat(args), (err, stdout) => {
       if (err) return reject(err)
       resolve(stdout.trim())
     })
   })
 }
 
-export function getLastRunlog () {
+exports.getLastRunlog = function getLastRunlog () {
   return new Promise((resolve, reject) => {
-    execFile('node', [getBinPath(), 'runlog'], (err, stdout) => {
+    execFile('node', [exports.getBinPath(), 'runlog'], (err, stdout) => {
       if (err) return reject(err)
       if (!stdout) return reject(Error('no runlog found'))
-      readFileAsync(stdout.trim()).then((data) => resolve(JSON.parse(data)))
+      exports.readFileAsync(stdout.trim()).then((data) => resolve(JSON.parse(data)))
     })
   })
 }
 
-export function readFileAsync (...args) {
+exports.readFileAsync = function readFileAsync (...args) {
   return new Promise((resolve, reject) => {
     readFile(...args, (err, data) => {
       if (err) return reject(err)

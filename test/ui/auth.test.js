@@ -34,7 +34,7 @@ test('prompts', async (t) => {
 test('authenticationFailed', (t) => {
   auth.authenticationFailed()
   t.true(console.log.calledWith(
-    `${chalk.red('✖')} ${chalk.white.bold('Authentication failed: invalid token')}`
+    `${chalk.red('✖')} ${chalk.white.bold('Authentication failed: invalid token. Please try again or email support@flossbank.com for help.')}`
   ))
 })
 

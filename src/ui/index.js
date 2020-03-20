@@ -145,7 +145,7 @@ Ui.prototype.showCompletion = async function showCompletion () {
   if (adsSummary) console.log(adsSummary)
 }
 
-Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail }) {
+Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail, checkAuth }) {
   if (haveApiKey) {
     const { shouldContinue } = await auth.confirm()
     if (!shouldContinue) return
@@ -172,7 +172,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
     return
   }
   const { token } = await auth.getAuthToken()
-  if (!token || !auth.isTokenTolerable(token)) {
+  if (!token || !auth.isTokenTolerable(token) || !await checkAuth(email, token)) {
     this.runlog.debug('got bad token from authentication flow: %o', token)
     auth.authenticationFailed()
     return
