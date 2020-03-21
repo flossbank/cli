@@ -31,9 +31,5 @@ module.exports = (ads) => {
     return output
   }, [chalk.white.bold('======== Flossbank Ad Summary ========\n')])
 
-  adSummary.push(
-    chalk.white.bold('\nThanks for supporting the Open Source community with Flossbank ♥')
-  )
-
   return adSummary.join('\n')
 }

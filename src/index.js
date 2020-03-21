@@ -46,12 +46,12 @@ module.exports = async () => {
   if (!pm.shouldShowAds() && !hasArgs) {
     runlog.debug('no args and pm determined we should not show ads')
     runlog.record(keys.PASSTHROUGH_MODE, true)
-    return noAdsPm()
+    return noAdsPm(() => exit())
   }
 
   if (process.env.FLOSSBANK_DISABLE) {
     runlog.record(keys.MANUALLY_DISABLED, true)
-    return noAdsPm()
+    return noAdsPm(() => exit())
   }
 
   const apiKey = config.getApiKey()
@@ -74,25 +74,29 @@ module.exports = async () => {
       runlog.record(keys.PASSTHROUGH_MODE, true)
       // something went wrong with getting the key
       // pass control to pm and leave
-      return noAdsPm()
+      return noAdsPm(() => exit())
     }
     await config.setApiKey(apiKey)
     runlog.debug('persisted api key in config')
   }
 
   let initialAdBatchSize = 0
+  let initialError = null
   try {
-    initialAdBatchSize = await api.fetchAdBatch()
-    runlog.record(keys.INITIAL_AD_BATCH_SIZE, initialAdBatchSize)
+    const { newAds, error } = await api.fetchAdBatch()
+    runlog.record(keys.INITIAL_AD_BATCH_SIZE, newAds)
+
+    initialError = error
+    initialAdBatchSize = newAds
   } catch (e) {
     runlog.error('failed to fetch initial ad batch %O', e)
     runlog.record(keys.PASSTHROUGH_MODE, true)
-    return noAdsPm()
+    return noAdsPm(() => exit())
   }
 
-  if (initialAdBatchSize < 1) {
+  if (initialError) {
     runlog.record(keys.PASSTHROUGH_MODE, true)
-    return noAdsPm()
+    return noAdsPm(() => exit())
   }
 
   let sessionData
@@ -101,37 +105,27 @@ module.exports = async () => {
       pm.getTopLevelPackages(),
       pm.getRegistry(),
       pm.getLanguage(),
-      pm.getVersion()
+      pm.getVersion(),
+      version
     ]
   } catch (e) {
     runlog.error('failed to get session data: %O', e)
   }
 
+  if (initialAdBatchSize < 1) {
+    // we will not start the UI; this is an no-ads session
+    return noAdsPm(async (err, code) => {
+      if (err) console.error(err)
+      await api.completeSession(sessionData)
+      ui.sayGoodbye()
+      exit(err, code)
+    })
+  }
+
   ui.setPmCmd(pmCmd)
     .setCallback(async () => {
-      let packages, registry, language, pmVersion
-      try {
-        ([packages, registry, language, pmVersion] = await Promise.all(sessionData))
-      } catch (e) {
-        runlog.error('failed to resolve session data: %O', e)
-      }
-      const sessionCompleteData = {
-        packages,
-        registry,
-        language,
-        metadata: {
-          packageManagerVersion: pmVersion,
-          flossbankVersion: version
-        }
-      }
-      runlog.record(keys.SESSION_COMPLETE_DATA, sessionCompleteData)
-      try {
-        runlog.debug('completing ad viewing session')
-        await api.completeSession(sessionCompleteData)
-        exit()
-      } catch (e) {
-        runlog.error('failed to complete session: %O', e)
-      }
+      await api.completeSession(sessionData)
+      exit()
     })
     .setFetchAd(async () => api.fetchAd())
     .setGetSeenAds(() => api.getSeenAds())
