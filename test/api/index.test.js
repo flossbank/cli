@@ -95,19 +95,18 @@ test('completeSession | creates request', async (t) => {
     .reply(200)
   const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.spy(api, 'createRequest')
-  await api.completeSession({
-    registry: 'npm',
-    language: 'javascript',
-    packages: ['abc'],
-    metadata: { packageManagerVersion: 'npm@1.1.1' }
-  })
-  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
-    registry: 'npm',
-    language: 'javascript',
-    packages: ['abc'],
-    metadata: { packageManagerVersion: 'npm@1.1.1' },
-    seen: api.seen.map(ad => ad.id)
-  }))
+  await api.completeSession([['abc'], 'npm', 'javascript', 'npm@1.1.1', '0.0.18'])
+  t.deepEqual(api.createRequest.lastCall.args, [
+    ROUTES.COMPLETE,
+    'POST',
+    {
+      registry: 'npm',
+      language: 'javascript',
+      packages: ['abc'],
+      metadata: { packageManagerVersion: 'npm@1.1.1', flossbankVersion: '0.0.18' },
+      seen: api.seen.map(ad => ad.id)
+    }
+  ])
   scope.done()
 })
 
@@ -130,14 +129,11 @@ test('createRequest | creates request', async (t) => {
 
 test('long request times out', async (t) => {
   const scope = nock('https://api.flossbank.com')
-    .post('/session/complete')
+    .post('/user/register')
     .delay(11000)
     .reply(200)
   const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   sinon.spy(api, 'createRequest')
-  await t.throwsAsync(api.completeSession())
-  t.true(api.createRequest.calledWith(ROUTES.COMPLETE, 'POST', {
-    seen: api.seen.map(ad => ad.id)
-  }))
+  await t.throwsAsync(api.sendAuthEmail())
   scope.done()
 })

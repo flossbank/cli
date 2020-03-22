@@ -9,6 +9,7 @@ function Api ({ config, runlog }) {
 
   this.unseen = []
   this.seen = []
+  this.noAds = false
 }
 
 Api.prototype.getApiKey = function getApiKey () {
@@ -20,7 +21,7 @@ Api.prototype.getSeenAds = function getSeenAds () {
 }
 
 Api.prototype.fetchAd = async function fetchAd () {
-  if (!this.unseen.length) {
+  if (!this.unseen.length && !this.noAds) {
     this.runlog.debug('unseen ads list is empty, requesting more')
     await this.fetchAdBatch()
   }
@@ -35,17 +36,25 @@ Api.prototype.fetchAd = async function fetchAd () {
 Api.prototype.fetchAdBatch = async function fetchAdBatch () {
   const [url, options] = this.createRequest(ROUTES.START, 'POST', {})
   let ads = []
+  let error = null
   try {
     const res = await fetch(url, options)
     if (!res.ok) throw new Error(`did not receive ok response from api: ${res.status}`)
     const json = await res.json()
     ads = json.ads
+    if (!ads || !ads.length) {
+      // signal to the class that we won't keep calling the API for more ads
+      // as the API has given us no ads on this call
+      this.runlog.debug('no ads returned from api, disabling ad fetching for rest of session')
+      this.noAds = true
+    }
     this.sessionId = json.sessionId
   } catch (e) {
+    error = e
     this.runlog.error('could not fetch ads: %O', e)
   }
   this.unseen.push(...ads || [])
-  return this.unseen.length
+  return { newAds: this.unseen.length, error }
 }
 
 Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
@@ -74,10 +83,32 @@ Api.prototype.checkAuth = async function checkAuth (email, apiKey) {
 }
 
 Api.prototype.completeSession = async function completeSession (sessionData = {}) {
+  let packages, registry, language, pmVersion, flossbankVersion
+  try {
+    ([packages, registry, language, pmVersion, flossbankVersion] = await Promise.all(sessionData))
+  } catch (e) {
+    this.runlog.error('failed to resolve session data: %O', e)
+  }
+  const sessionCompleteData = {
+    packages,
+    registry,
+    language,
+    metadata: {
+      packageManagerVersion: pmVersion,
+      flossbankVersion
+    }
+  }
+  this.runlog.record(this.runlog.keys.SESSION_COMPLETE_DATA, sessionCompleteData)
+
   const seenAdIds = this.seen.map(ad => ad.id)
-  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds, ...sessionData })
+  const [url, options] = this.createRequest(ROUTES.COMPLETE, 'POST', { seen: seenAdIds, ...sessionCompleteData })
   this.runlog.record(this.runlog.keys.SEEN_AD_IDS, seenAdIds)
-  return fetch(url, options)
+
+  try {
+    return fetch(url, options)
+  } catch (e) {
+    this.runlog.error('failed to complete session: %O', e)
+  }
 }
 
 Api.prototype.createRequest = function createRequest (endpoint, method, payload) {

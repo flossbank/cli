@@ -143,6 +143,7 @@ Ui.prototype.showCompletion = async function showCompletion () {
     process.stdout.write(this.pmOutput)
   }
   if (adsSummary) console.log(adsSummary)
+  this.sayGoodbye()
 }
 
 Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail, checkAuth }) {
@@ -197,6 +198,12 @@ Ui.prototype.setPmDone = function setPmDone (code) {
     this.pmError = code
   }
   this.pmDone = true
+}
+
+Ui.prototype.sayGoodbye = function sayGoodbye () {
+  console.log(
+    chalk.white.bold('\nThanks for supporting the Open Source community with Flossbank ♥')
+  )
 }
 
 Ui.prototype.showHelp = function showHelp () {

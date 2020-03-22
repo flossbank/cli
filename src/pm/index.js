@@ -22,7 +22,7 @@ class Pm {
     if (!supportedPm) { return { supportedPm } }
     this.pm = require(`./${this.pmArg}`)
     const self = this
-    const noAdsPm = () => { self.runlog.write().then(() => { self.start({ silent: false }) }) }
+    const noAdsPm = (cb) => { self.start({ silent: false }, cb) }
     const adsPm = (cb) => { self.start({ silent: true }, cb) }
     return { supportedPm, adsPm, noAdsPm }
   }
@@ -42,13 +42,16 @@ class Pm {
     return supportedVerb && !ci.isCI
   }
 
-  start (opts = {}, cb) {
+  start (opts = {}, cb = () => {}) {
     if (this._isDefined('start')) {
       return this.pm.start(opts, cb)
     }
     // default start
     if (!opts.silent) {
-      return spawn(this.pmArg, process.argv.slice(2), { stdio: 'inherit', shell: true })
+      const child = spawn(this.pmArg, process.argv.slice(2), { stdio: 'inherit', shell: true })
+      child.on('error', (err) => cb(err))
+      child.on('exit', (code) => cb(null, { exit: true, code }))
+      return
     }
     if (supportsColor) {
       process.env.FORCE_COLOR = 3
