@@ -5,14 +5,21 @@ steps:
 - powershell: |
     . ci/exec.ps1
     $ErrorActionPreference = "Stop"
-
-    echo "Setting API host to staging"
-    exec { patch -u src/constants.js -i ci/constants.patch }
-    exec { npm run build }
-  displayName: Pre-test config
+    $env:DEBUG="flossbank"
+    exec { npm run test:integ }
+  displayName: Integ Tests
 - powershell: |
     . ci/exec.ps1
     $ErrorActionPreference = "Stop"
-    $env:DEBUG="flossbank"
-    exec { npm run integ-tests }
-  displayName: Tests
+    exec { npm run coverage }
+  displayName: Test Coverage
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testRunner: JUnit
+    testResultsFiles: '**/TEST_RESULTS.xml'
+- task: PublishCodeCoverageResults@1
+  inputs: 
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
+

@@ -21,6 +21,7 @@ test.afterEach(async (t) => {
 
 test.after.always(() => {
   process.chdir(path.resolve(__dirname, '..'))
+  util.resetConfig()
 })
 
 test.serial('integ: npm: using package.json run pm with ads', async (t) => {

@@ -1,7 +1,7 @@
 module.exports = {
   INTERVAL: 5000,
   TIMEOUT: 10000,
-  API_HOST: 'https://api.flossbank.com',
+  DEFAULT_API_HOST: 'https://api.flossbank.com',
   ROUTES: {
     START: 'session/start',
     COMPLETE: 'session/complete',
@@ -15,6 +15,7 @@ module.exports = {
   DEFAULT_CONFIG: {},
   PROJECT_NAME: 'flossbank',
   CONFIG_API_KEY: 'apiKey',
+  CONFIG_API_HOST: 'apiHost',
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
   SHEBANG: '#!/usr/bin/env bash',

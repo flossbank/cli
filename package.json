@@ -12,10 +12,21 @@
 	"scripts": {
 		"postinstall": "flossbank install || exit 0",
 		"postuninstall": "node bin.js uninstall",
-		"prepare": "npm t && npm run build",
+		"prepare": "npm run test:unit && npm run build",
 		"build": "webpack",
-		"test": "standard && nyc ava --timeout=15s --match=\"!*integ*\"",
-		"integ-tests": "ava -v --timeout=1m --match=\"*integ*\""
+		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
+		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
+		"test:integ": "ava -v --timeout=1m --match=\"*integ*\"",
+		"test:integ:tap": "ava -vt --timeout=1m --match=\"*integ*\"",
+		"test:tap": "multi-tap -r test:unit:tap -r test:integ:tap | tap-xunit",
+		"coverage": "cross-env FLOSSBANK_TEST_SOURCE=1 DEBUG=flossbank nyc --reporter=cobertura npm run --silent test:tap > TEST_RESULTS.xml"
+	},
+	"nyc": {
+		"exclude": [
+			"test/**/*.js",
+			"ci/tests/**/*.js",
+			"webpack.config.js"
+		]
 	},
 	"dependencies": {
 		"update-notifier": "^4.0.0"
@@ -27,12 +38,14 @@
 		"chalk": "^2.4.2",
 		"ci-info": "^2.0.0",
 		"conf": "^6.2.0",
+		"cross-env": "^7.0.2",
 		"debug": "^4.1.1",
 		"diffy": "^2.1.0",
 		"husky": "^3.0.5",
 		"ls": "^0.2.1",
 		"make-dir": "^3.0.2",
 		"minimist": "^1.2.0",
+		"multi-tap": "^1.0.1",
 		"nock": "^11.7.2",
 		"node-fetch": "^2.6.0",
 		"nyc": "^14.1.1",
@@ -40,6 +53,8 @@
 		"rimraf": "^3.0.2",
 		"sinon": "^7.5.0",
 		"standard": "^13.1.0",
+		"tap-merge": "^0.3.1",
+		"tap-xunit": "^2.4.1",
 		"temp-write": "^4.0.0",
 		"term-size": "^2.1.0",
 		"terser-webpack-plugin": "^2.3.2",

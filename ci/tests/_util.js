@@ -9,17 +9,60 @@ const Config = require('../../src/config')
 const rm = promisify(rimraf)
 
 const INTEG_TEST_KEY = 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34b48357d1'
+const INTEG_TEST_HOST = 'https://api.flossbank.io'
+const DEFAULT_HOST = 'https://api.flossbank.com'
 const config = new Config()
 
-exports.setIntegApiKey = function setIntegApiKey () {
-  return config.setApiKey(INTEG_TEST_KEY)
+let backupApiKey
+
+exports.setIntegApiKey = async function setIntegApiKey () {
+  if (!backupApiKey) {
+    backupApiKey = config.getApiKey()
+  }
+  config.setApiKey(INTEG_TEST_KEY)
+
+  if (config.getApiHost !== INTEG_TEST_HOST) {
+    config.setApiHost(INTEG_TEST_HOST)
+    await exports.buildBinary()
+  }
 }
 
-exports.setInvalidApiKey = function setInvalidApiKey () {
-  return config.setApiKey('very-invalid-api-key')
+exports.resetConfig = async function resetConfig () {
+  if (backupApiKey) {
+    config.setApiKey(backupApiKey)
+  }
+  if (config.getApiHost() !== DEFAULT_HOST) {
+    config.setApiHost(DEFAULT_HOST)
+    await exports.buildBinary()
+  }
+}
+
+exports.setInvalidApiKey = async function setInvalidApiKey () {
+  if (!backupApiKey) {
+    backupApiKey = config.getApiKey()
+  }
+  config.setApiKey('very-invalid-api-key')
+  if (config.getApiHost !== INTEG_TEST_HOST) {
+    config.setApiHost(INTEG_TEST_HOST)
+    await exports.buildBinary()
+  }
+}
+
+exports.buildBinary = async function buildBinary () {
+  return new Promise((resolve, reject) => {
+    process.chdir(path.resolve(__dirname, '..'))
+    execFile('npm', ['run', 'build'], (err, stdout) => {
+      if (err) return reject(err)
+      process.chdir(path.resolve(__dirname))
+      resolve()
+    })
+  })
 }
 
 exports.getBinPath = function getBinPath () {
+  if (process.env.FLOSSBANK_TEST_SOURCE) {
+    return path.resolve(process.cwd(), '../../src', 'bin.js')
+  }
   return path.resolve(process.cwd(), '../../', 'bin.js')
 }
 

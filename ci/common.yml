@@ -3,12 +3,17 @@ steps:
     node bin.js version
   displayName: Print Flossbank version
 - script: |
-    set -e
-
-    echo "Setting API host to staging"
-    patch -u src/constants.js -i ci/constants.patch
-    npm run build
-  displayName: Pre-test config
-- script: |
-    DEBUG=flossbank npm run integ-tests
+    DEBUG=flossbank npm run test:integ
   displayName: Tests
+- script: |
+    npm run coverage
+  displayName: Test Coverage
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testRunner: JUnit
+    testResultsFiles: '**/TEST_RESULTS.xml'
+- task: PublishCodeCoverageResults@1
+  inputs: 
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'

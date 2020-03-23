@@ -1,9 +1,9 @@
 const qs = require('querystring')
 const fetch = require('./fetch')
-const { API_HOST, ROUTES } = require('../constants')
+const { ROUTES } = require('../constants')
 
 function Api ({ config, runlog }) {
-  this.url = API_HOST
+  this.url = config.getApiHost()
   this.config = config
   this.runlog = runlog
 
