@@ -20,21 +20,14 @@ exports.setIntegApiKey = async function setIntegApiKey () {
     backupApiKey = config.getApiKey()
   }
   config.setApiKey(INTEG_TEST_KEY)
-
-  if (config.getApiHost !== INTEG_TEST_HOST) {
-    config.setApiHost(INTEG_TEST_HOST)
-    await exports.buildBinary()
-  }
+  config.setApiHost(INTEG_TEST_HOST)
 }
 
 exports.resetConfig = async function resetConfig () {
   if (backupApiKey) {
     config.setApiKey(backupApiKey)
   }
-  if (config.getApiHost() !== DEFAULT_HOST) {
-    config.setApiHost(DEFAULT_HOST)
-    await exports.buildBinary()
-  }
+  config.setApiHost(DEFAULT_HOST)
 }
 
 exports.setInvalidApiKey = async function setInvalidApiKey () {
@@ -42,21 +35,7 @@ exports.setInvalidApiKey = async function setInvalidApiKey () {
     backupApiKey = config.getApiKey()
   }
   config.setApiKey('very-invalid-api-key')
-  if (config.getApiHost !== INTEG_TEST_HOST) {
-    config.setApiHost(INTEG_TEST_HOST)
-    await exports.buildBinary()
-  }
-}
-
-exports.buildBinary = async function buildBinary () {
-  return new Promise((resolve, reject) => {
-    process.chdir(path.resolve(__dirname, '..'))
-    execFile('npm', ['run', 'build'], (err, stdout) => {
-      if (err) return reject(err)
-      process.chdir(path.resolve(__dirname))
-      resolve()
-    })
-  })
+  config.setApiHost(INTEG_TEST_HOST)
 }
 
 exports.getBinPath = function getBinPath () {
