@@ -14,6 +14,7 @@
 		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm run test:unit && npm run build",
 		"build": "webpack",
+		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
 		"test:integ": "ava -v --timeout=1m --match=\"*integ*\"",
