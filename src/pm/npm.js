@@ -3,15 +3,25 @@ const parseArgs = require('minimist')
 const readPackageJson = require('../util/readPackageJson')
 
 class Npm {
-  static isSupportedVerb (cmd) {
+  constructor (args) {
+    this.args = parseArgs(args)
+    this.verbs = new Set(['install', 'i'])
+  }
+
+  isSupportedVerb () {
     // confirm that the command being run is a supported form:
     //   npm install <optional pkgs here>
     //   npm i <optional pkgs here>
-    const split = cmd.split(' ')
-    return split.length >= 2 && (split[1] === 'install' || split[1] === 'i')
+
+    const installing = this.args._.length === 1 && this.verbs.has(this.args._[0])
+    return installing
   }
 
-  static async getTopLevelPackages () {
+  isQuietMode () {
+    return this.args.silent || this.args.quiet || this.args.s
+  }
+
+  async getTopLevelPackages () {
     // for simplicity sake:
     //   if format is `npm install package1...packageN`, send those pkgs
     //   if format is `npm install`, send package.json.deps + devDeps
@@ -19,20 +29,18 @@ class Npm {
     // npm logic is slightly different than this depending on the presence
     // of a package-lock.json, but i think this will suffice for now
 
-    const args = parseArgs(process.argv.slice(2))
-
     // this is the `npm install` case
-    if (args._.length === 1) {
-      const prodOnly = args.production || args.only === 'prod' || process.env.NODE_ENV === 'production'
+    if (this.args._.length === 1) {
+      const prodOnly = this.args.production || this.args.only === 'prod' || process.env.NODE_ENV === 'production'
       const { deps, devDeps } = await readPackageJson()
       return prodOnly ? deps : deps.concat(devDeps)
     }
 
     // this is the `npm install package1...packageN` case
-    return args._.slice(1) // args._[0] === 'install'
+    return this.args._.slice(1) // args._[0] === 'install'
   }
 
-  static async getRegistry () {
+  async getRegistry () {
     return new Promise((resolve, reject) => {
       execFile('npm', ['config', 'get', 'registry'], { shell: true }, (e, stdout) => {
         if (e) return reject(e)
@@ -42,11 +50,11 @@ class Npm {
     })
   }
 
-  static getLanguage () {
+  getLanguage () {
     return 'javascript'
   }
 
-  static async getVersion () {
+  async getVersion () {
     return new Promise((resolve, reject) => {
       execFile('npm', ['-v'], { shell: true }, (e, stdout) => {
         if (e) return reject(e)

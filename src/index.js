@@ -112,7 +112,7 @@ module.exports = async () => {
     runlog.error('failed to get session data: %O', e)
   }
 
-  if (initialAdBatchSize < 1) {
+  if (initialAdBatchSize < 1 || pm.isQuietMode()) {
     // we will not start the UI; this is an no-ads session
     return noAdsPm(async (err, code) => {
       if (err) console.error(err)
