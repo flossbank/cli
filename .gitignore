@@ -4,3 +4,6 @@ node_modules
 dist
 ci/tests/package-lock.json
 ci/tests/node_modules
+TEST_RESULTS.xml
+coverage/
+

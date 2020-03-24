@@ -2,11 +2,12 @@ const test = require('ava')
 const sinon = require('sinon')
 const nock = require('nock')
 const Api = require('../../src/api')
-const { ROUTES, API_HOST } = require('../../src/constants')
+const { ROUTES } = require('../../src/constants')
 
 test.beforeEach((t) => {
   t.context.config = {
-    getApiKey: sinon.stub().returns('abc')
+    getApiKey: sinon.stub().returns('abc'),
+    getApiHost: sinon.stub().returns('https://api.flossbank.com')
   }
   t.context.runlog = {
     debug: sinon.stub(),
@@ -120,7 +121,7 @@ test('createRequest | creates request', async (t) => {
   const api = new Api({ config: t.context.config, runlog: t.context.runlog })
   api.key = 'abc'
   const [url, options] = api.createRequest('endpoint', 'POST', { a: 1 })
-  t.deepEqual(url, `${API_HOST}/endpoint`)
+  t.deepEqual(url, `${t.context.config.getApiHost()}/endpoint`)
   t.deepEqual(options.headers.authorization, 'Bearer abc')
   t.deepEqual(options.headers['content-type'], 'application/json')
   t.deepEqual(options.method, 'POST')

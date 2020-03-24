@@ -21,6 +21,7 @@ test.beforeEach((t) => {
     debug: t.context.debug,
     tempWriter: t.context.tempWriter
   })
+  t.context.runlog.debugger.enabled = false
 })
 
 test.after.always(() => {

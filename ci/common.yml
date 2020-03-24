@@ -3,12 +3,5 @@ steps:
     node bin.js version
   displayName: Print Flossbank version
 - script: |
-    set -e
-
-    echo "Setting API host to staging"
-    patch -u src/constants.js -i ci/constants.patch
-    npm run build
-  displayName: Pre-test config
-- script: |
-    DEBUG=flossbank npm run integ-tests
+    DEBUG=flossbank npm run test:integ
   displayName: Tests
