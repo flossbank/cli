@@ -20,7 +20,10 @@ class Pm {
     const supportedPm = SUPPORTED_PMS.includes(this.pmArg)
     this.supportedPm = supportedPm
     if (!supportedPm) { return { supportedPm } }
-    this.pm = require(`./${this.pmArg}`)
+
+    const PackageManager = require(`./${this.pmArg}`)
+    this.pm = new PackageManager(process.argv.slice(2))
+
     const self = this
     const noAdsPm = (cb) => { self.start({ silent: false }, cb) }
     const adsPm = (cb) => { self.start({ silent: true }, cb) }
@@ -29,6 +32,13 @@ class Pm {
 
   getPmCmd () {
     return this.pmCmd
+  }
+
+  isQuietMode () {
+    if (this._isDefined('isQuietMode')) {
+      return this.pm.isQuietMode()
+    }
+    return this.pm.args.silent || this.pm.args.quiet
   }
 
   shouldShowAds () {

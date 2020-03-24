@@ -2,30 +2,34 @@ const { execFile } = require('child_process')
 const parseArgs = require('minimist')
 
 class Pip {
-  static isSupportedVerb (cmd) {
-    const split = cmd.split(' ')
+  constructor (args) {
+    this.args = parseArgs(args)
+    this.verbs = new Set(['install', 'download'])
+  }
+
+  isSupportedVerb () {
     // pip <command> [options] and we currently only wrap install and download
-    const installOrDownload = split[1] === 'install' || split[1] === 'download'
+    const installOrDownload = this.verbs.has(this.args._[0])
     // pip requires at least one arg after the command, so we do too
-    const enoughArgs = split.length > 2
-    const args = parseArgs(split)
+    const enoughArgs = this.args._.length > 1
 
     // and also `install -r` requires an additional argument
-    if (args.r) {
-      return installOrDownload && typeof args.r === 'string'
+    const requirements = this.args.requirements || this.args.r
+    if (requirements) {
+      return installOrDownload && typeof requirements === 'string'
     }
     return installOrDownload && enoughArgs
   }
 
-  static getLanguage () {
+  getLanguage () {
     return 'python'
   }
 
-  static async getVersion () {
+  async getVersion () {
     return new Promise((resolve, reject) => {
       execFile('pip', ['-V'], { shell: true }, (e, stdout) => {
         if (e) return reject(e)
-        if (!stdout) return reject(new Error('failed to determine npm version'))
+        if (!stdout) return reject(new Error('failed to determine pip version'))
         return resolve(stdout.trim())
       })
     })
