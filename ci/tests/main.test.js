@@ -38,6 +38,48 @@ test.serial('integ: npm: using package.json run pm with ads', async (t) => {
   t.false(runlog.passthrough)
 })
 
+test.serial('integ: npm: package.json quiet mode', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['npm', 'install', '--quiet'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'npm install --quiet')
+  t.true(runlog.seenAdIds.length === 0) // no ads
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: npm: package.json silent mode', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['npm', 'install', '--silent'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'npm install --silent')
+  t.true(runlog.seenAdIds.length === 0) // no ads
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: npm: specific package silent mode', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['npm', 'install', 'js-deep-equals', '--silent'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.includes('js-deep-equals'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'npm install js-deep-equals --silent')
+  t.true(runlog.seenAdIds.length === 0) // no ads
+  t.false(runlog.passthrough)
+})
+
 test.serial('integ: npm: specific package run pm with ads', async (t) => {
   await util.setIntegApiKey()
   await util.runFlossbank(['npm', 'install', 'js-deep-equals'])
@@ -63,6 +105,62 @@ test.serial('integ: npm: run in passthru mode when auth fails', async (t) => {
   t.true(runlog.supportedPm)
   t.true(runlog.passthrough)
   t.is(runlog.errors.length, 1) // only 1 error (authentication)
+})
+
+test.serial('integ: yarn: using package.json run pm with ads', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['yarn'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'yarn')
+  t.true(runlog.seenAdIds.length > 0)
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: yarn: package.json silent mode', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['yarn', 'install', '--silent'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.every(dep => nodeModules.includes(dep)))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'yarn install --silent')
+  t.true(runlog.seenAdIds.length === 0) // no ads
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: yarn: specific package silent mode', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['yarn', 'add', 'js-deep-equals', '--silent'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.includes('js-deep-equals'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'yarn add js-deep-equals --silent')
+  t.true(runlog.seenAdIds.length === 0) // no ads
+  t.false(runlog.passthrough)
+})
+
+test.serial('integ: yarn: specific package run pm with ads', async (t) => {
+  await util.setIntegApiKey()
+  await util.runFlossbank(['yarn', 'add', 'js-deep-equals'])
+  const nodeModules = await util.getNodeModules()
+  t.log('installed node modules:', nodeModules)
+  t.true(testNodeDeps.includes('js-deep-equals'))
+
+  const runlog = await util.getLastRunlog()
+  t.true(runlog.supportedPm)
+  t.is(runlog.pmCmd, 'yarn add js-deep-equals')
+  t.true(runlog.seenAdIds.length > 0)
+  t.false(runlog.passthrough)
 })
 
 test.serial('integ: pip: with requirements file run pm with ads', async (t) => {

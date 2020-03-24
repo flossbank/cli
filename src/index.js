@@ -113,6 +113,7 @@ module.exports = async () => {
   }
 
   if (initialAdBatchSize < 1 || pm.isQuietMode()) {
+    runlog.record(keys.PASSTHROUGH_MODE, false)
     // we will not start the UI; this is an no-ads session
     return noAdsPm(async (err, code) => {
       if (err) console.error(err)

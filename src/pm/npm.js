@@ -13,7 +13,7 @@ class Npm {
     //   npm install <optional pkgs here>
     //   npm i <optional pkgs here>
 
-    const installing = this.args._.length === 1 && this.verbs.has(this.args._[0])
+    const installing = this.args._.length >= 1 && this.verbs.has(this.args._[0])
     return installing
   }
 
