@@ -76,8 +76,8 @@ module.exports = async () => {
       // pass control to pm and leave
       return noAdsPm(() => exit())
     }
-    await config.setApiKey(apiKey)
-    runlog.debug('persisted api key in config')
+    await config.setApiKey(newApiKey)
+    runlog.record(runlog.keys.NEW_API_KEY_SET, true)
   }
 
   let initialAdBatchSize = 0

@@ -251,3 +251,15 @@ test.serial('integ: uninstall from shell profiles', async (t) => {
   t.true(profiles.every(profile => !profile.includes('flossbank_aliases')))
   t.log('after uninstall no shell profiles were found sourcing flossbank aliases')
 })
+
+test.serial('integ: auth flow successful', async (t) => {
+  await util.clearApiKey()
+  await util.runFlossbankWithInput(['auth'], [util.INTEG_TEST_EMAIL, util.INTEG_TEST_KEY])
+
+  const runlog = await util.getLastRunlog()
+  t.log(runlog)
+  t.true(runlog.arguments.auth)
+  t.true(runlog.newApiKeySet)
+
+  t.is(await util.getApiKey(), util.INTEG_TEST_KEY)
+})

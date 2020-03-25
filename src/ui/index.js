@@ -154,16 +154,18 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   const { email } = await auth.getEmail()
   if (!email) {
     this.runlog.debug('did not get an email; cannot continue authentication flow')
+    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     auth.authenticationFailed()
     return
   }
   try {
     const res = await sendAuthEmail(email)
     if (!res.ok) {
-      this.runlog.debug('got bad status code %o when requesting authentication email', res.statusCode)
+      this.runlog.debug('got bad status code %o when requesting authentication email', res.status)
       throw new Error('Could not request auth token email')
     }
   } catch (e) {
+    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     this.runlog.error('failed to request authentication email: %O', e)
     console.error(
       chalk.red(
@@ -175,6 +177,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   const { token } = await auth.getAuthToken()
   if (!token || !auth.isTokenTolerable(token) || !await checkAuth(email, token)) {
     this.runlog.debug('got bad token from authentication flow: %o', token)
+    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     auth.authenticationFailed()
     return
   }
