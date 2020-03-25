@@ -18,7 +18,7 @@ module.exports = async () => {
   const alias = new Alias({ config })
   const profile = new Profile({ alias, runlog })
   const pm = new Pm({ runlog })
-  const ui = new Ui({ runlog })
+  const ui = new Ui({ config, runlog })
   const args = new Args({ api, ui, config, alias, profile, runlog })
   const exit = (reason, code) => {
     runlog.write(reason).then(() => { process.exit(code || 0) })
@@ -76,8 +76,8 @@ module.exports = async () => {
       // pass control to pm and leave
       return noAdsPm(() => exit())
     }
-    await config.setApiKey(apiKey)
-    runlog.debug('persisted api key in config')
+    await config.setApiKey(newApiKey)
+    runlog.record(runlog.keys.NEW_API_KEY_SET, true)
   }
 
   let initialAdBatchSize = 0

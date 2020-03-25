@@ -1,13 +1,15 @@
 const readline = require('readline')
 const chalk = require('chalk')
 const Diffy = require('diffy')
+const prompts = require('prompts')
 const auth = require('./auth')
 const format = require('./format')
 const summary = require('./summary')
 const { INTERVAL, USAGE } = require('../constants')
 const { version } = require('../../package.json')
 
-function Ui ({ runlog }) {
+function Ui ({ config, runlog }) {
+  this.config = config
   this.runlog = runlog
   this.interval = INTERVAL
   this.pmOutput = Buffer.alloc(0)
@@ -147,6 +149,9 @@ Ui.prototype.showCompletion = async function showCompletion () {
 }
 
 Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail, checkAuth }) {
+  if (this.runlog.enabled) {
+    prompts.override(this.config.getAuthOverrides())
+  }
   if (haveApiKey) {
     const { shouldContinue } = await auth.confirm()
     if (!shouldContinue) return
@@ -160,7 +165,7 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   try {
     const res = await sendAuthEmail(email)
     if (!res.ok) {
-      this.runlog.debug('got bad status code %o when requesting authentication email', res.statusCode)
+      this.runlog.debug('got bad status code %o when requesting authentication email', res.status)
       throw new Error('Could not request auth token email')
     }
   } catch (e) {

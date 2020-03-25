@@ -3,6 +3,7 @@ const keys = {
   ARGUMENTS: 'arguments',
   SUPPORTED_PM: 'supportedPm',
   HAVE_API_KEY: 'haveApiKey',
+  NEW_API_KEY_SET: 'newApiKeySet',
   AUTH_FLOW_FAILED: 'authFlowFailed',
   INITIAL_AD_BATCH_SIZE: 'initialAdBatchSize',
   PM_CMD: 'pmCmd',

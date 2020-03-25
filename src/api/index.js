@@ -70,10 +70,16 @@ Api.prototype.sendAuthEmail = async function sendAuthEmail (email) {
 }
 
 Api.prototype.checkAuth = async function checkAuth (email, apiKey) {
-  const [url, options] = this.createRequest(ROUTES.CHECK_AUTH, 'POST', { email, apiKey })
-
+  // can't use createRequest for this call since we might not an api key yet (probably don't)
   try {
-    const res = await fetch(url, options)
+    const res = await fetch(`${this.url}/${ROUTES.CHECK_AUTH}`, {
+      headers: {
+        'x-requested-with': 'XmlHttpRequest',
+        'content-type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({ email, apiKey })
+    })
     if (!res.ok) return false
     return true
   } catch (e) {

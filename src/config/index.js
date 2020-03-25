@@ -7,6 +7,7 @@ const {
   CONFIG_API_HOST,
   CONFIG_ALIASES,
   CONFIG_LAST_RUNLOG,
+  CONFIG_AUTH_OVERRIDES,
   DEFAULT_ALIASES
 } = require('../constants')
 
@@ -58,6 +59,16 @@ Config.prototype.setLastRunlog = function setLastRunlog (logpath) {
 
 Config.prototype.getLastRunlog = function getLastRunlog (logpath) {
   return this.conf.get(CONFIG_LAST_RUNLOG, logpath)
+}
+
+Config.prototype.getAuthOverrides = function getAuthOverrides () {
+  const overrides = this.conf.get(CONFIG_AUTH_OVERRIDES) || {}
+  this.conf.delete(CONFIG_AUTH_OVERRIDES) // only allow overrides to be used once after setting
+  return overrides
+}
+
+Config.prototype.setAuthOverrides = function setAuthOverrides (overrides) {
+  return this.conf.set(CONFIG_AUTH_OVERRIDES, overrides)
 }
 
 module.exports = Config
