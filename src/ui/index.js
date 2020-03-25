@@ -1,13 +1,15 @@
 const readline = require('readline')
 const chalk = require('chalk')
 const Diffy = require('diffy')
+const prompts = require('prompts')
 const auth = require('./auth')
 const format = require('./format')
 const summary = require('./summary')
 const { INTERVAL, USAGE } = require('../constants')
 const { version } = require('../../package.json')
 
-function Ui ({ runlog }) {
+function Ui ({ config, runlog }) {
+  this.config = config
   this.runlog = runlog
   this.interval = INTERVAL
   this.pmOutput = Buffer.alloc(0)
@@ -147,6 +149,9 @@ Ui.prototype.showCompletion = async function showCompletion () {
 }
 
 Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail, checkAuth }) {
+  if (this.runlog.enabled) {
+    prompts.override(this.config.getAuthOverrides())
+  }
   if (haveApiKey) {
     const { shouldContinue } = await auth.confirm()
     if (!shouldContinue) return
@@ -154,7 +159,6 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   const { email } = await auth.getEmail()
   if (!email) {
     this.runlog.debug('did not get an email; cannot continue authentication flow')
-    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     auth.authenticationFailed()
     return
   }
@@ -165,7 +169,6 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
       throw new Error('Could not request auth token email')
     }
   } catch (e) {
-    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     this.runlog.error('failed to request authentication email: %O', e)
     console.error(
       chalk.red(
@@ -177,7 +180,6 @@ Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthE
   const { token } = await auth.getAuthToken()
   if (!token || !auth.isTokenTolerable(token) || !await checkAuth(email, token)) {
     this.runlog.debug('got bad token from authentication flow: %o', token)
-    this.runlog.record(this.runlog.keys.AUTH_FLOW_FAILED, true)
     auth.authenticationFailed()
     return
   }

@@ -1,10 +1,9 @@
 const path = require('path')
-const { execFile, spawn } = require('child_process')
+const { execFile } = require('child_process')
 const { readFile } = require('fs')
 const { promisify } = require('util')
 const ls = require('ls')
 const rimraf = require('rimraf')
-const streamOf = require('string-to-stream')
 const Config = require('../../src/config')
 
 const rm = promisify(rimraf)
@@ -17,12 +16,6 @@ const DEFAULT_HOST = 'https://api.flossbank.com'
 const config = new Config()
 
 let backupApiKey
-
-function pause (ms) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), ms)
-  })
-}
 
 exports.setIntegApiKey = async function setIntegApiKey () {
   if (!backupApiKey) {
@@ -42,6 +35,10 @@ exports.clearApiKey = async function clearApiKey () {
   }
   config.setApiKey('')
   config.setApiHost(INTEG_TEST_HOST)
+}
+
+exports.setAuthOverrides = async function setAuthOverrides (overrides) {
+  return config.setAuthOverrides(overrides)
 }
 
 exports.resetConfig = async function resetConfig () {
@@ -96,26 +93,6 @@ exports.runFlossbank = function runFlossbank (args) {
       if (err) return reject(err)
       resolve(stdout.trim())
     })
-  })
-}
-
-exports.runFlossbankWithInput = function runFlossbankWithInput (args, input) {
-  return new Promise((resolve, reject) => {
-    let output = Buffer.alloc(0)
-    const child = spawn('node', [exports.getBinPath()].concat(args), { shell: true })
-    child.on('error', reject)
-    child.on('exit', () => { resolve(output) })
-    child.stdout.on('data', (chunk) => { output = Buffer.concat([output, chunk]) })
-    child.stderr.on('data', (chunk) => { output = Buffer.concat([output, chunk]) })
-
-    const cmdPromises = input.map((cmd) => {
-      return pause(1000).then(() => {
-        streamOf(`${cmd}\n`).pipe(child.stdin, { end: false })
-      })
-    })
-
-    // sequential promises
-    cmdPromises.reduce((chain, promise) => chain.then(() => promise))
   })
 }
 

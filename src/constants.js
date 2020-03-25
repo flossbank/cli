@@ -18,6 +18,7 @@ module.exports = {
   CONFIG_API_HOST: 'apiHost',
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
+  CONFIG_AUTH_OVERRIDES: 'authOverrides',
   SHEBANG: '#!/usr/bin/env bash',
   SUPPORTED_PMS: ['npm', 'yarn', 'pip'],
   USAGE: `

@@ -254,11 +254,11 @@ test.serial('integ: uninstall from shell profiles', async (t) => {
 
 test.serial('integ: auth flow successful', async (t) => {
   await util.clearApiKey()
-  await util.runFlossbankWithInput(['auth'], [util.INTEG_TEST_EMAIL, util.INTEG_TEST_KEY])
+  await util.setAuthOverrides({ email: util.INTEG_TEST_EMAIL, token: util.INTEG_TEST_KEY })
+  await util.runFlossbank(['auth'])
 
   const runlog = await util.getLastRunlog()
-  t.log(runlog)
-  t.true(runlog.arguments.auth)
+  t.deepEqual(runlog.arguments, { hasArgs: true, auth: true })
   t.true(runlog.newApiKeySet)
 
   t.is(await util.getApiKey(), util.INTEG_TEST_KEY)
