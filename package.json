@@ -54,7 +54,6 @@
 		"rimraf": "^3.0.2",
 		"sinon": "^7.5.0",
 		"standard": "^13.1.0",
-		"string-to-stream": "^3.0.1",
 		"tap-xunit": "^2.4.1",
 		"temp-write": "^4.0.0",
 		"term-size": "^2.1.0",
