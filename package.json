@@ -17,8 +17,8 @@
 		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
-		"test:integ": "ava -v --timeout=1m --match=\"*integ*\"",
-		"test:integ:tap": "ava -vt --timeout=1m --match=\"*integ*\"",
+		"test:integ": "cd ci/tests; ava -v --timeout=1m --serial --match=\"*integ*\"; cd ../../",
+		"test:integ:tap": "cd ci/tests; ava -vt --timeout=1m --serial --match=\"*integ*\"; cd ../../",
 		"test:tap": "multi-tap -r test:unit:tap -r test:integ:tap | tap-xunit",
 		"coverage": "cross-env FLOSSBANK_TEST_SOURCE=1 DEBUG=flossbank nyc --reporter=cobertura npm run --silent test:tap > TEST_RESULTS.xml"
 	},
