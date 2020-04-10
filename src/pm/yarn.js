@@ -1,6 +1,6 @@
 const { execFile } = require('child_process')
 const parseArgs = require('minimist')
-const readPackageJson = require('../util/readPackageJson')
+const pkgJsonUtil = require('../util/readPackageJson')
 
 class Yarn {
   constructor (args) {
@@ -13,10 +13,13 @@ class Yarn {
     //   yarn
     //   yarn install
     //   yarn add <optional pkgs here>
-    const justYarn = !this.args._.length
-    const justInstall = this.args._.length === 1 && this.args._[0] === 'install'
+    // TODO yarn is actually pretty strict about ordering: yarn add [packages] [flags]
+    // `yarn add -g something` is invalid and therefore we shouldn't show ads
+
+    const justYarn = this.args._.length === 2 // ['node', 'yarn']
+    const justInstall = this.args._.length === 3 && this.args._[2] === 'install'
     const installingFromPkgJson = justYarn || justInstall
-    const installingSpecificPkg = this.args._[0] === 'add' && this.args._.length > 1
+    const installingSpecificPkg = this.args._[2] === 'add' && this.args._.length > 3
 
     return installingFromPkgJson || installingSpecificPkg
   }
@@ -24,7 +27,7 @@ class Yarn {
   async getTopLevelPackages () {
     // yarn seems to install all dependencies in all cases (except prod=prod only)
     // rules we will use (for now)
-    //   if format is `yarn add pkg1...pkgN`, send those pkgs + package.json.deps + devDeps
+    //   if format is `yarn add pkg1...pkgN [-g]`, send those pkgs + package.json.deps + devDeps
     //   if format is `yarn` or `yarn install`, send package.json.deps + devDeps
     //   if `--production`, send package.json.deps
     // yarn logic is slightly different than this depending on the presence
@@ -33,16 +36,16 @@ class Yarn {
     const packages = []
 
     // get what's needed from package.json
-    const prodOnly = this.args.production || process.env.NODE_ENV === 'production'
-    const { deps, devDeps } = await readPackageJson()
+    const prodOnly = this.args.production || this.args.prod || process.env.NODE_ENV === 'production'
+    const { deps, devDeps } = await pkgJsonUtil.read()
     packages.push(...deps)
     if (!prodOnly) {
       packages.push(...devDeps)
     }
 
     // catch any packages on the command line
-    if (this.args._.length > 1) {
-      packages.push(...this.args._.slice(1)) // args._[0] === 'add'
+    if (this.args._.length > 3) {
+      packages.push(...this.args._.slice(3)) // args._[2] === 'add'
     }
 
     return packages
