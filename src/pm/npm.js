@@ -15,7 +15,7 @@ class Npm {
   }
 
   isQuietMode () {
-    return ['warn', 'silent'].includes(this.flags.logLevel)
+    return ['warn', 'silent'].includes(this.flags.loglevel)
   }
 
   async getTopLevelPackages () {
