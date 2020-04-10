@@ -1,43 +1,33 @@
 const { execFile } = require('child_process')
-const parseArgs = require('minimist')
-const readPackageJson = require('../util/readPackageJson')
+const pkgJsonUtil = require('../util/readPackageJson')
+const nopt = require('nopt')
+const { shorthands, types } = require('npm/lib/config/defaults')
 
 class Npm {
   constructor (args) {
-    this.args = parseArgs(args)
-    this.verbs = new Set(['install', 'i'])
+    this.flags = nopt(types, shorthands, args)
+    this.argv = this.flags.argv.remain
+    this.verbs = new Set(['install', 'i', 'add'])
   }
 
   isSupportedVerb () {
-    // confirm that the command being run is a supported form:
-    //   npm install <optional pkgs here>
-    //   npm i <optional pkgs here>
-
-    const installing = this.args._.length >= 1 && this.verbs.has(this.args._[0])
-    return installing
+    return this.verbs.has(this.argv[0])
   }
 
   isQuietMode () {
-    return this.args.silent || this.args.quiet || this.args.s
+    return ['warn', 'silent'].includes(this.flags.loglevel)
   }
 
   async getTopLevelPackages () {
-    // for simplicity sake:
-    //   if format is `npm install package1...packageN`, send those pkgs
-    //   if format is `npm install`, send package.json.deps + devDeps
-    //   if format is `npm install --only=prod`, send package.json.deps
-    // npm logic is slightly different than this depending on the presence
-    // of a package-lock.json, but i think this will suffice for now
-
-    // this is the `npm install` case
-    if (this.args._.length === 1) {
-      const prodOnly = this.args.production || this.args.only === 'prod' || process.env.NODE_ENV === 'production'
-      const { deps, devDeps } = await readPackageJson()
-      return prodOnly ? deps : deps.concat(devDeps)
+    const pkgs = this.argv.slice(1) // everything but the 'command'
+    if (!pkgs.length) {
+      const prodOnly = typeof this.flags.only === 'string' && this.flags.only.startsWith('prod')
+      const prodEnv = process.env.NODE_ENV === 'production'
+      const excludeDevDeps = prodOnly || prodEnv
+      const { deps, devDeps } = await pkgJsonUtil.read()
+      pkgs.push(...(excludeDevDeps ? deps : deps.concat(devDeps)))
     }
-
-    // this is the `npm install package1...packageN` case
-    return this.args._.slice(1) // args._[0] === 'install'
+    return pkgs
   }
 
   async getRegistry () {

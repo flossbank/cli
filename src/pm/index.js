@@ -22,7 +22,7 @@ class Pm {
     if (!supportedPm) { return { supportedPm } }
 
     const PackageManager = require(`./${this.pmArg}`)
-    this.pm = new PackageManager(process.argv.slice(2))
+    this.pm = new PackageManager(process.argv)
 
     const self = this
     const noAdsPm = (cb) => { self.start({ silent: false }, cb) }

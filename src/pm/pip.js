@@ -9,9 +9,9 @@ class Pip {
 
   isSupportedVerb () {
     // pip <command> [options] and we currently only wrap install and download
-    const installOrDownload = this.verbs.has(this.args._[0])
+    const installOrDownload = this.verbs.has(this.args._[2])
     // pip requires at least one arg after the command, so we do too
-    const enoughArgs = this.args._.length > 1
+    const enoughArgs = this.args._.length > 3
 
     // and also `install -r` requires an additional argument
     const requirements = this.args.requirements || this.args.r
