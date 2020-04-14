@@ -10,7 +10,7 @@
 		"node": ">=8"
 	},
 	"scripts": {
-		"postinstall": "flossbank install || exit 0",
+		"postinstall": "node bin.js install || exit 0",
 		"postuninstall": "node bin.js uninstall",
 		"prepare": "npm run test:unit && npm run build",
 		"build": "webpack",
