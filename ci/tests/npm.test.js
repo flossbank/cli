@@ -82,7 +82,7 @@ test.serial('integ: npm: specific package run pm with ads', async (t) => {
   t.true(runlog.seenAdIds.length > 0)
 })
 
-test.serial.only('integ: npm: run in passthru mode when auth fails', async (t) => {
+test.serial('integ: npm: run in passthru mode when auth fails', async (t) => {
   await flossbank.config.setInvalidApiKey()
   const runlog = await flossbank.run(['npm', 'install'])
 
