@@ -1,7 +1,4 @@
 steps:
-- script: |
-    node bin.js version
-  displayName: Print Flossbank version
 - powershell: |
     . ci/exec.ps1
     $ErrorActionPreference = "Stop"

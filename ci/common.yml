@@ -1,7 +1,4 @@
 steps:
 - script: |
-    node bin.js version
-  displayName: Print Flossbank version
-- script: |
     DEBUG=flossbank npm run test:integ
   displayName: Tests
