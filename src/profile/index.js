@@ -5,7 +5,6 @@ const {
     readFile,
     writeFile,
     open,
-    close,
     access
   }
 } = require('fs')
@@ -164,7 +163,7 @@ class Profile {
     this.runlog.debug('creating blank profile %o', profilePath)
     await makeDir(path.resolve(profilePath, '..'))
     // we don't need the file descriptor, so immediately close the file
-    return close(await open(profilePath, 'a')) // `a` flag opens file for appending; creates empty if it doesn't exist
+    return (await open(profilePath, 'a')).close() // `a` flag opens file for appending; creates empty if it doesn't exist
   }
 
   async _isRunnable (sh) {
