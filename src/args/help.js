@@ -1,3 +1,3 @@
 module.exports = async ({ ui }) => {
-  ui.showHelp()
+  ui.printHelp()
 }

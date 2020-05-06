@@ -1,6 +1,6 @@
-test
 .nyc_output
-src
-webpack.config.js
-ci/
 azure-pipelines.yml
+
+test/
+src/
+ci/

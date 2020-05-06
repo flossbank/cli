@@ -1,19 +1,12 @@
 const path = require('path')
 const {
-  fs: { readFileAsync },
+  fs: { readFile },
   exec,
   constants: { INTEG_TEST_KEY, INTEG_TEST_HOST }
 } = require('./_common')
 const Config = require('../../../src/config')
 
 const config = new Config()
-
-function getBinPath () {
-  if (process.env.FLOSSBANK_TEST_SOURCE) {
-    return path.resolve(process.cwd(), '../../src', 'bin.js')
-  }
-  return path.resolve(process.cwd(), '../../', 'bin.js')
-}
 
 // utilities to aid in configuring and running FB and collecting logs
 module.exports = {
@@ -34,9 +27,13 @@ module.exports = {
     setAuthOverrides: (overrides) => config.setAuthOverrides(overrides)
   },
   run: async function (args) {
-    await exec('node', [getBinPath()].concat(args))
-    const { stdout } = await exec('node', [getBinPath(), 'runlog'])
-    const runlog = await readFileAsync(stdout.trim())
+    const runFn = process.env.FLOSSBANK_TEST_SOURCE
+      ? (_args) => exec('node', [path.resolve(process.cwd(), '../../src')].concat(_args))
+      : (_args) => exec(path.resolve(process.cwd(), '../../', 'flossbank'), _args)
+
+    await runFn(args)
+    const { stdout } = await runFn(['runlog'])
+    const runlog = await readFile(stdout.trim())
     return JSON.parse(runlog)
   }
 }

@@ -1,17 +1,24 @@
 const keys = {
   FB_VERSION: 'fbVersion',
-  ARGUMENTS: 'arguments',
+  PASSTHROUGH_MODE: 'passthrough',
+  WRAP_MODE: 'wrap',
+  SILENT_MODE: 'silent',
+  EXIT_REASON: 'exitReason',
+
+  // pm
   SUPPORTED_PM: 'supportedPm',
+  PM_CMD: 'pmCmd',
+
+  // auth
   HAVE_API_KEY: 'haveApiKey',
   NEW_API_KEY_SET: 'newApiKeySet',
   AUTH_FLOW_FAILED: 'authFlowFailed',
-  INITIAL_AD_BATCH_SIZE: 'initialAdBatchSize',
-  PM_CMD: 'pmCmd',
+
+  // session
   SESSION_COMPLETE_DATA: 'sessionCompleteData',
   SEEN_AD_IDS: 'seenAdIds',
-  EXIT_REASON: 'exitReason',
-  PASSTHROUGH_MODE: 'passthrough',
-  MANUALLY_DISABLED: 'manuallyDisabled',
+
+  // profile
   DETECTED_SHELL_PROFILES: 'detectedShellFormatProfiles',
   DETECTED_POWER_PROFILES: 'detectedPowerFormatProfiles'
 }
@@ -20,9 +27,8 @@ const keys = {
 function replaceErrors (_, val) {
   if (val instanceof Error) {
     const error = {}
-    Object.getOwnPropertyNames(val).forEach((prop) => {
-      error[prop] = val[prop]
-    })
+    const props = ['message', 'stack']
+    props.forEach((prop) => { error[prop] = val[prop] })
     return error
   }
   return val
@@ -59,12 +65,11 @@ class Runlog {
 
   async write (reason) {
     if (!this.enabled) return
-    this.records.EXIT_REASON = reason
-    this.records.endTime = Date.now()
+    this.record('exitReason', reason)
+    this.record('endTime', Date.now())
     const path = await this.tempWriter.write(JSON.stringify(this.records, replaceErrors))
     this.config.setLastRunlog(path)
   }
 }
 
-exports.keys = keys
-exports.Runlog = Runlog
+module.exports = Runlog

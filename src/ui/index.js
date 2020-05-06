@@ -2,76 +2,61 @@ const readline = require('readline')
 const chalk = require('chalk')
 const Diffy = require('diffy')
 const prompts = require('prompts')
-const auth = require('./auth')
+const ora = require('ora')
+const authPrompts = require('./authPrompts')
 const format = require('./format')
 const summary = require('./summary')
-const { INTERVAL, USAGE } = require('../constants')
+const { AD_INTERVAL, USAGE } = require('../constants')
 const { version } = require('../../package.json')
+const { sleep } = require('../util')
 
-function Ui ({ config, runlog }) {
-  this.config = config
-  this.runlog = runlog
-  this.interval = INTERVAL
-  this.pmOutput = Buffer.alloc(0)
-  this.pmDone = false
-  this.pmError = null
+const getSpinner = (runtime) => ['|', '/', '-', '\\'][Math.floor(runtime * 10) % 4]
 
-  this.pmCmd = null
-  this.getSeenAds = () => []
-  this.doneShowingAds = async () => {}
-  this.fetchAd = async () => {}
+class Ui {
+  constructor ({ config, client, runlog }) {
+    this.config = config
+    this.runlog = runlog
+    this.client = client
+    this.interval = AD_INTERVAL
 
-  this.runtime = 0
-  this.diffy = null
+    this.pmOutput = Buffer.alloc(0)
+    this.pmDone = false
+    this.pmError = null
 
-  this.showPmOutput = false
-  this.ad = ''
-}
+    this.diffy = null
+    this.renderInterval = null
 
-Ui.prototype.setPmCmd = function setPmCmd (pmCmd) {
-  this.pmCmd = pmCmd
-  return this
-}
+    this.showPmOutput = false
+    this.canToggle = true
 
-Ui.prototype.setCallback = function setCallback (cb) {
-  this.doneShowingAds = cb
-  return this
-}
+    this.runtime = 0 // seconds since starting ads
+  }
 
-Ui.prototype.setGetSeenAds = function setGetSeenAds (fn) {
-  this.getSeenAds = fn
-  return this
-}
+  getExecString (pmCmd) {
+    const suffix = this.pmDone ? '...done!' : '.'.repeat(Math.floor(this.runtime % 6))
+    return this.showPmOutput
+      ? `${this.getToggleString()}${suffix}`
+      : `Flossbank is executing ${chalk.bold(pmCmd)}${suffix}`
+  }
 
-Ui.prototype.setFetchAd = function setFetchAd (fn) {
-  this.fetchAd = fn
-  return this
-}
+  getToggleString () {
+    return this.showPmOutput
+      ? 'Press any key to show ads instead of command output'
+      : 'Press any key to show command output instead of ads'
+  }
 
-Ui.prototype.getSpinner = function getSpinner () {
-  return ['|', '/', '-', '\\'][Math.floor(this.runtime * 10) % 4]
-}
+  toggle () {
+    if (!this.canToggle) {
+      return
+    }
+    this.showPmOutput = !this.showPmOutput
+    this.render()
+  }
 
-Ui.prototype.getExecString = function getExecString () {
-  const suffix = this.pmDone ? '...done!' : '.'.repeat(Math.floor(this.runtime % 6))
-  return this.showPmOutput
-    ? `${this.getToggleString()}${suffix}`
-    : `Flossbank is executing ${chalk.bold(this.pmCmd)}${suffix}`
-}
-
-Ui.prototype.getToggleString = function getToggleString () {
-  return this.showPmOutput
-    ? 'Press any key to show ads instead of command output'
-    : 'Press any key to show command output instead of ads'
-}
-
-Ui.prototype.toggle = function toggle () {
-  this.showPmOutput = !this.showPmOutput
-  this.diffy.render()
-}
-
-Ui.prototype.startAds = async function startAds () {
-  if (!this.diffy && !this.runlog.enabled) {
+  init () {
+    if (this.diffy || this.runlog.enabled) { // no diffy if in debug mode
+      return
+    }
     this.diffy = Diffy()
     const diffy = this.diffy
     diffy.render(() => this.getExecString())
@@ -81,7 +66,6 @@ Ui.prototype.startAds = async function startAds () {
     }, 100)
     readline.emitKeypressEvents(process.stdin)
     process.stdin.setRawMode(true)
-
     process.stdin.on('keypress', (_, key) => {
       if (key && key.ctrl && key.name === 'c') {
         process.exit()
@@ -89,146 +73,153 @@ Ui.prototype.startAds = async function startAds () {
       this.toggle()
     })
   }
-  if (!this.pmDone) {
-    let ad
-    if (!this.showPmOutput) {
-      try {
-        ad = await this.fetchAd()
-      } catch (e) {
-        this.runlog.error('failed to fetch ad: %O', e)
-        return this.failure()
-      }
-      if (!ad) return this.failure()
-      this.ad = this.runlog.enabled ? ad : format(ad)
-    }
 
+  tearDown () {
     if (!this.runlog.enabled) {
-      this.diffy.render(() => {
+      process.stdin.setRawMode(false)
+      clearInterval(this.renderInterval)
+
+      // if currently showing ads, delete the ad and replace with pm output
+      this.diffy.render(() => '')
+      this.diffy.destroy()
+      process.stdout.write(this.pmOutput)
+    }
+  }
+
+  render (renderFn) {
+    if (this.runlog.enabled) { // nothing to render if in debug mode
+      return
+    }
+    this.diffy.render(renderFn)
+  }
+
+  async startAds ({ pmCmd }) {
+    this.init()
+
+    while (!this.pmDone) {
+      let formattedAd = ''
+      if (!this.showPmOutput) { // only get/format an ad if someone is looking
+        const ad = await this.client.getAd()
+        if (!ad) {
+          this.handleNoAds()
+          continue
+        }
+        this.runlog.debug('showing ad: %O', ad)
+        formattedAd = format(ad)
+      }
+
+      this.render(() => {
         return this.showPmOutput
-          ? `${this.pmOutput.length ? this.pmOutput : `${this.getSpinner()} ${this.getExecString()}`}`
-          : `${this.getSpinner()} ${this.getExecString()}\n${this.ad}\n${this.getToggleString()}`
+          ? `${this.pmOutput.length ? this.pmOutput : `${getSpinner(this.runtime)} ${this.getExecString(pmCmd)}`}`
+          : `${getSpinner(this.runtime)} ${this.getExecString(pmCmd)}\n${formattedAd}\n${this.getToggleString()}`
       })
-    } else {
-      this.runlog.debug('showing ad: %O', ad)
+      await sleep(this.interval)
     }
-    setTimeout(() => this.startAds(), this.interval)
-  } else {
-    this.doneShowingAds()
-    this.showCompletion()
-  }
-}
 
-Ui.prototype.failure = async function failure () {
-  if (!this.pmDone) {
-    this.runlog.debug('package manager is not done yet; waiting to show completion message')
-    setTimeout(() => this.failure(), 500)
-    return
-  }
-  this.showCompletion()
-}
-
-Ui.prototype.showCompletion = async function showCompletion () {
-  this.runlog.debug('package manager complete; printing output')
-  if (!this.runlog.enabled) {
-    process.stdin.setRawMode(false)
-    clearInterval(this.renderInterval)
+    this.tearDown()
   }
 
-  if (this.pmError) {
-    console.error(typeof this.pmError === 'number' ? `Exit code: ${this.pmError}` : this.pmError)
+  handleNoAds () {
+    this.runlog.debug('no ads to show, disabling toggling')
+    this.canToggle = false
+    this.showPmOutput = true
+    this.render()
   }
 
-  const adsSummary = summary(this.getSeenAds())
-  if (!this.showPmOutput && !this.runlog.enabled) { // if currently showing ads, delete the ad and print the output
-    this.diffy.render(() => '')
-    this.diffy.destroy()
-    process.stdout.write(this.pmOutput)
-  }
-  if (adsSummary) console.log(adsSummary)
-  this.sayGoodbye()
-}
-
-Ui.prototype.authenticate = async function authenticate ({ haveApiKey, sendAuthEmail, checkAuth }) {
-  if (this.runlog.enabled) {
-    prompts.override(this.config.getAuthOverrides())
-  }
-  if (haveApiKey) {
-    const { shouldContinue } = await auth.confirm()
-    if (!shouldContinue) return
-  }
-  const { email } = await auth.getEmail()
-  if (!email) {
-    this.runlog.debug('did not get an email; cannot continue authentication flow')
-    auth.authenticationFailed()
-    return
-  }
-  try {
-    const res = await sendAuthEmail(email)
-    if (!res.ok) {
-      this.runlog.debug('got bad status code %o when requesting authentication email', res.status)
-      throw new Error('Could not request auth token email')
+  printSummary () {
+    this.runlog.debug('package manager complete; printing output')
+    if (this.pmError) {
+      console.error(typeof this.pmError === 'number' ? `Exit code: ${this.pmError}` : this.pmError)
     }
-  } catch (e) {
-    this.runlog.error('failed to request authentication email: %O', e)
-    console.error(
-      chalk.red(
-        'Unable to request authentication token. Please email support@flossbank.com for support.'
-      )
+    const adsSummary = summary(this.client.getSeenAds())
+    if (adsSummary) { console.log(adsSummary) }
+  }
+
+  async authenticate () {
+    if (this.runlog.enabled) {
+      prompts.override(this.config.getAuthOverrides())
+    }
+    if (this.client.haveApiKey()) {
+      const { shouldContinue } = await authPrompts.confirm()
+      if (!shouldContinue) { return }
+    }
+    const { email } = await authPrompts.getEmail()
+    if (!email) {
+      this.runlog.debug('did not get an email; cannot continue authentication flow')
+      authPrompts.authenticationFailed()
+      return
+    }
+
+    let pollingToken
+    try {
+      const res = await this.client.requestRegistration(email)
+      pollingToken = res.pollingToken
+    } catch (e) {
+      this.runlog.error('failed to request registration email: %O', e)
+      console.error(chalk.red('Unable to begin registration process. Please email support@flossbank.com for support.'))
+      return
+    }
+
+    const progress = ora(
+      chalk.bold('Please check your email and follow the instructions to complete registration!')
     )
-    return
-  }
-  const { token } = await auth.getAuthToken()
-  if (!token || !auth.isTokenTolerable(token) || !await checkAuth(email, token)) {
-    this.runlog.debug('got bad token from authentication flow: %o', token)
-    auth.authenticationFailed()
-    return
-  }
-  auth.authenticationSucceeded()
-  return token.trim()
-}
 
-Ui.prototype.setPmOutput = function setPmOutput (e, stdout, stderr) {
-  if (stdout) {
-    this.pmOutput = Buffer.concat([this.pmOutput, stdout])
-  } else if (stderr) {
-    this.pmOutput = Buffer.concat([this.pmOutput, stderr])
-  } else if (e) {
+    progress.start()
+    let apiKey
+    try {
+      apiKey = await this.client.pollForApiKey(email, pollingToken)
+    } catch (e) {
+      progress.fail(
+        chalk.bold('We were unable to complete your registration. Please try again or email support@flossbank.com for help.')
+      )
+      return
+    }
+
+    progress.succeed(
+      chalk.bold('Success! Thank you for registering with Flossbank!')
+    )
+    return apiKey.trim()
+  }
+
+  setPmOutput (error, stdout, stderr) {
+    if (stdout || stderr) {
+      this.pmOutput = Buffer.concat([this.pmOutput, stdout || stderr])
+    } else if (error) {
+      this.pmDone = true
+      this.pmError = error
+    }
+  }
+
+  setPmDone (code) {
+    if (code) {
+      this.pmError = code
+    }
     this.pmDone = true
-    this.pmError = e
   }
-}
 
-Ui.prototype.setPmDone = function setPmDone (code) {
-  if (code) {
-    this.pmError = code
+  sayGoodbye () {
+    console.log(chalk.white.bold('\nThanks for supporting the Open Source community with Flossbank ♥'))
   }
-  this.pmDone = true
-}
 
-Ui.prototype.sayGoodbye = function sayGoodbye () {
-  console.log(
-    chalk.white.bold('\nThanks for supporting the Open Source community with Flossbank ♥')
-  )
-}
+  printHelp () {
+    console.log(`  Flossbank v${version}\n${USAGE}`)
+  }
 
-Ui.prototype.showHelp = function showHelp () {
-  console.log(`  Flossbank v${version}\n${USAGE}`)
-}
+  printVersion () {
+    console.log(version)
+  }
 
-Ui.prototype.showVersion = function showVersion () {
-  console.log(version)
-}
+  info (msg) {
+    console.log(chalk.white.bold(msg))
+  }
 
-Ui.prototype.info = function info (msg) {
-  console.log(chalk.white.bold(msg))
-}
+  warn (msg) {
+    console.log(chalk.yellow(msg))
+  }
 
-Ui.prototype.warn = function warn (msg) {
-  console.log(chalk.yellow(msg))
-}
-
-Ui.prototype.error = function error (msg) {
-  console.log(chalk.red(msg))
+  error (msg) {
+    console.log(chalk.red(msg))
+  }
 }
 
 module.exports = Ui

@@ -1,8 +1,5 @@
-const { readFile } = require('fs')
-const { promisify } = require('util')
+const { promises: { readFile } } = require('fs')
 const path = require('path')
-
-const readFileAsync = promisify(readFile)
 
 const DEFAULT_PKG = { dependencies: {}, devDependencies: {} }
 
@@ -10,7 +7,7 @@ module.exports = {
   read: async () => {
     let packageJson = DEFAULT_PKG
     try {
-      const packageJsonFile = await readFileAsync(
+      const packageJsonFile = await readFile(
         path.join(process.cwd(), 'package.json'),
         'utf8'
       )

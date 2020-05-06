@@ -1,14 +1,6 @@
 module.exports = {
-  INTERVAL: 5000,
-  TIMEOUT: 10000,
+  AD_INTERVAL: 5000,
   DEFAULT_API_HOST: 'https://api.flossbank.com',
-  ROUTES: {
-    START: 'session/start',
-    COMPLETE: 'session/complete',
-    SEND_AUTH: 'user/register',
-    CHECK_AUTH: 'user/check'
-  },
-  SUPPORTED_ARGS: ['help', 'version', 'auth', 'install', 'uninstall', 'runlog'],
   SOURCE_VARIANT_SHELL: 'shell',
   SOURCE_VARIANT_POWER: 'power',
   DEFAULT_ALIASES: { shell: {}, power: {} },
@@ -20,7 +12,6 @@ module.exports = {
   CONFIG_LAST_RUNLOG: 'lastRunlog',
   CONFIG_AUTH_OVERRIDES: 'authOverrides',
   SHEBANG: '#!/usr/bin/env bash',
-  SUPPORTED_PMS: ['npm', 'yarn', 'pip'],
   USAGE: `
   Usage:
     flossbank [option]

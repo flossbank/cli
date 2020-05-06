@@ -5,7 +5,7 @@ jobs:
   steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: '10.x'
+      versionSpec: '12.x'
     displayName: 'Install Node.js'
   - script: |
       npm install
@@ -26,21 +26,13 @@ jobs:
     vmImage: 'windows-latest'
   strategy:
     matrix:
-      node_8_x:
-        node_version: 8.x
-      node_9_x:
-        node_version: 9.x
-      node_10_x:
-        node_version: 10.x
-      node_11_x:
-        node_version: 11.x
       node_12_x:
         node_version: 12.x
   steps:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install
+  - script: npm install && npm build:local
   - template: ci/windows.yml
 
 - job: Linux
@@ -48,21 +40,13 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      node_8_x:
-        node_version: 8.x
-      node_9_x:
-        node_version: 9.x
-      node_10_x:
-        node_version: 10.x
-      node_11_x:
-        node_version: 11.x
       node_12_x:
         node_version: 12.x
   steps:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install
+  - script: npm install && npm build:local
   - template: ci/linux.yml
 
 - job: Mac
@@ -70,21 +54,13 @@ jobs:
     vmImage: 'macOS-latest'
   strategy:
     matrix:
-      node_8_x:
-        node_version: 8.x
-      node_9_x:
-        node_version: 9.x
-      node_10_x:
-        node_version: 10.x
-      node_11_x:
-        node_version: 11.x
       node_12_x:
         node_version: 12.x
   steps:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install
+  - script: npm install && npm build:local
   - template: ci/mac.yml
 
 trigger:
