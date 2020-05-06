@@ -32,7 +32,7 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install && npm build:local
+  - script: npm install && npm run build:local
   - template: ci/windows.yml
 
 - job: Linux
@@ -46,7 +46,7 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install && npm build:local
+  - script: npm install && npm run build:local
   - template: ci/linux.yml
 
 - job: Mac
@@ -60,7 +60,7 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-  - script: npm install && npm build:local
+  - script: npm install && npm run build:local
   - template: ci/mac.yml
 
 trigger:

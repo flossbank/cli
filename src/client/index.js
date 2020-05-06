@@ -1,5 +1,5 @@
 const HttpAgent = require('agentkeepalive')
-const { default: got } = require('got')
+const got = require('got')
 const { HttpsAgent } = HttpAgent
 const { sleep } = require('../util')
 
