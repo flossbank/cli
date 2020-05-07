@@ -1,9 +1,17 @@
-const fs = require('fs')
+const {
+  createWriteStream,
+  createReadStream,
+  promises: {
+    readFile,
+    writeFile,
+    open,
+    access
+  }
+} = require('fs')
+const { exec } = require('child_process')
 const os = require('os')
 const path = require('path')
-const { exec } = require('child_process')
 const makeDir = require('make-dir')
-const { readFileAsync, writeFileAsync, openAsync, closeAsync } = require('../util/asyncFs')
 
 function inHome (...filepaths) {
   return path.join(os.homedir(), ...filepaths)
@@ -80,14 +88,14 @@ class Profile {
   async _appendLineToProfile (profile, line) {
     const { contents } = profile
     if (contents.includes(line)) return // don't double add
-    return writeFileAsync(profile.path, this._pad(line), { flag: 'a' }) // append
+    return writeFile(profile.path, this._pad(contents, line), { flag: 'a' }) // append
   }
 
   async _removeLineFromProfile (profile, line) {
     const { contents } = profile
     if (!contents.includes(line)) return // nothing to remove
     const cleanProfile = contents.split(os.EOL).filter(existingLine => existingLine !== line).join(os.EOL)
-    return writeFileAsync(profile.path, cleanProfile)
+    return writeFile(profile.path, cleanProfile)
   }
 
   async _detectProfiles () {
@@ -130,9 +138,9 @@ class Profile {
 
   async _backupProfile (profilePath) {
     if (!await this._fileExists(profilePath)) return
+    const backupPath = `${profilePath}_flossbank_backup.bak`
     return new Promise((resolve) => {
-      const backupPath = `${profilePath}_${Date.now()}.bak`
-      const stream = fs.createReadStream(profilePath).pipe(fs.createWriteStream(backupPath))
+      const stream = createReadStream(profilePath).pipe(createWriteStream(backupPath))
       stream.on('close', resolve)
     })
   }
@@ -143,10 +151,11 @@ class Profile {
 
   async _readOrCreateProfile (profilePath) {
     if (!await this._fileExists(profilePath)) {
+      this.runlog.debug('unable to access %s', profilePath)
       await this._createProfile(profilePath)
       return { path: profilePath, contents: '' }
     }
-    const contents = await readFileAsync(profilePath, 'utf8')
+    const contents = await readFile(profilePath, 'utf8')
     return { path: profilePath, contents }
   }
 
@@ -154,7 +163,7 @@ class Profile {
     this.runlog.debug('creating blank profile %o', profilePath)
     await makeDir(path.resolve(profilePath, '..'))
     // we don't need the file descriptor, so immediately close the file
-    return closeAsync(await openAsync(profilePath, 'a')) // `a` flag opens file for appending; creates empty if it doesn't exist
+    return (await open(profilePath, 'a')).close() // `a` flag opens file for appending; creates empty if it doesn't exist
   }
 
   async _isRunnable (sh) {
@@ -188,14 +197,23 @@ class Profile {
     return runResults.some(Boolean)
   }
 
-  _fileExists (filePath) {
-    return new Promise((resolve) => {
-      fs.access(filePath, (err) => resolve(!err))
-    })
+  async _fileExists (filePath) {
+    try {
+      // access doesn't return `true` if the user can access `filePath`
+      // instead, it throws if the answer is no
+      await access(filePath)
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
-  _pad (something) {
-    return `${os.EOL}${something}${os.EOL}`
+  _pad (profile, line) {
+    const profileLines = profile.split(os.EOL)
+    if (!profileLines[profileLines.length - 1]) { // blank line at end of profile
+      return `${line}${os.EOL}`
+    }
+    return `${os.EOL}${line}${os.EOL}` // add a blank line between exiting content and line
   }
 }
 

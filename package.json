@@ -3,17 +3,15 @@
 	"version": "0.0.20",
 	"license": "MIT",
 	"bin": {
-		"flossbank": "bin.js"
+		"flossbank": "src/index.js"
 	},
 	"preferGlobal": true,
 	"engines": {
 		"node": ">=8"
 	},
 	"scripts": {
-		"postinstall": "node bin.js install || exit 0",
-		"postuninstall": "node bin.js uninstall",
-		"prepare": "npm run test:unit && npm run build",
-		"build": "webpack",
+		"prepare": "npm run test:unit",
+		"build:local": "pkg --public -t node12 -o flossbank package.json",
 		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
@@ -30,39 +28,36 @@
 		]
 	},
 	"dependencies": {
-		"update-notifier": "^4.0.0"
-	},
-	"devDependencies": {
-		"abort-controller": "^3.0.0",
-		"ava": "^3.5.0",
+		"agentkeepalive": "^4.1.2",
 		"boxen": "^4.1.0",
 		"chalk": "^2.4.2",
-		"ci-info": "^2.0.0",
 		"conf": "^6.2.0",
-		"cross-env": "^7.0.2",
 		"debug": "^4.1.1",
 		"diffy": "^2.1.0",
-		"husky": "^3.0.5",
-		"ls": "^0.2.1",
+		"got": "^11.1.0",
 		"make-dir": "^3.0.2",
 		"minimist": "^1.2.0",
-		"multi-tap": "^1.0.1",
-		"nock": "^11.7.2",
-		"node-fetch": "^2.6.0",
 		"nopt": "^4.0.3",
 		"npm": "^6.14.4",
-		"nyc": "^14.1.1",
+		"ora": "^4.0.4",
 		"prompts": "^2.2.1",
+		"temp-write": "^4.0.0",
+		"term-size": "^2.1.0",
+		"word-wrap": "^1.2.3"
+	},
+	"devDependencies": {
+		"ava": "^3.5.0",
+		"cross-env": "^7.0.2",
+		"husky": "^3.0.5",
+		"ls": "^0.2.1",
+		"multi-tap": "^1.0.1",
+		"nock": "^11.7.2",
+		"nyc": "^14.1.1",
+		"pkg": "^4.4.8",
 		"rimraf": "^3.0.2",
 		"sinon": "^7.5.0",
 		"standard": "^13.1.0",
-		"tap-xunit": "^2.4.1",
-		"temp-write": "^4.0.0",
-		"term-size": "^2.1.0",
-		"terser-webpack-plugin": "^2.3.2",
-		"webpack": "^4.41.4",
-		"webpack-cli": "^3.3.10",
-		"word-wrap": "^1.2.3"
+		"tap-xunit": "^2.4.1"
 	},
 	"husky": {
 		"hooks": {

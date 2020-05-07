@@ -1,45 +1,50 @@
-const { SUPPORTED_ARGS } = require('../constants')
+const help = require('./help')
+const version = require('./version')
+const auth = require('./auth')
+const install = require('./install')
+const uninstall = require('./uninstall')
+const wrap = require('./wrap')
+const unwrap = require('./unwrap')
+const runlog = require('./runlog')
 
-const HANDLERS = SUPPORTED_ARGS.reduce((handlers, arg) => {
-  handlers[arg] = require(`./${arg}`)
-  return handlers
-}, {})
+const supportedArgs = new Map([
+  ['--help', help],
+  ['help', help],
 
-function buildArgs (help) {
-  const [h] = help.split('')
-  return [`--${help}`, `-${h}`, `${help}`]
-}
+  ['--version', version],
+  ['-v', version],
+  ['version', version],
 
-function Args ({ config, api, ui, alias, profile, runlog }) {
-  this.deps = { config, api, ui, alias, profile, runlog }
-  this.cmd = {}
-}
+  ['auth', auth],
+  ['install', install],
+  ['uninstall', uninstall],
+  ['wrap', wrap],
+  ['unwrap', unwrap],
+  ['runlog', runlog]
+])
 
-Args.prototype.init = function init () {
-  const firstArg = process.argv[2]
+class Args {
+  constructor ({ config, api, ui, alias, profile, runlog }) {
+    this.deps = { config, api, ui, alias, profile, runlog }
+    this._haveArgs = false
+    const firstArg = process.argv[2]
 
-  // handle no arg; display help msg
-  if (!firstArg) {
-    this.cmd = { hasArgs: true, help: true }
-    return this.cmd
-  }
-
-  for (const arg of SUPPORTED_ARGS) {
-    if (buildArgs(arg).includes(firstArg)) {
-      this.cmd = { hasArgs: true, [arg]: true }
-      return this.cmd
+    // handle no arg; display help msg
+    if (!firstArg) {
+      this.handler = help
+      this._haveArgs = true
+    } else if (supportedArgs.has(firstArg)) {
+      this.handler = supportedArgs.get(firstArg)
+      this._haveArgs = true
     }
   }
 
-  return this.cmd
-}
+  haveArgs () {
+    return this._haveArgs
+  }
 
-Args.prototype.act = async function act () {
-  for (const arg of SUPPORTED_ARGS) {
-    if (this.cmd[arg] && typeof HANDLERS[arg] === 'function') {
-      await HANDLERS[arg](this.deps)
-      break
-    }
+  act () {
+    return typeof this.handler === 'function' && this.handler(this.deps)
   }
 }
 

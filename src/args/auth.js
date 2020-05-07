@@ -1,9 +1,5 @@
 module.exports = async ({ ui, config, api, runlog }) => {
-  const apiKey = await ui.authenticate({
-    haveApiKey: !!config.getApiKey(),
-    sendAuthEmail: api.sendAuthEmail.bind(api),
-    checkAuth: api.checkAuth.bind(api)
-  })
+  const apiKey = await ui.authenticate()
   if (!apiKey) {
     runlog.record(runlog.keys.AUTH_FLOW_FAILED, true)
     return

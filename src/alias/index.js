@@ -1,12 +1,11 @@
 const { EOL } = require('os')
 const { join } = require('path')
+const { promises: { writeFile } } = require('fs')
 const {
-  SUPPORTED_PMS,
   PROJECT_NAME,
   SOURCE_VARIANT_POWER,
   SOURCE_VARIANT_SHELL
 } = require('../constants')
-const { writeFileAsync } = require('../util/asyncFs')
 
 /**
  * Alias wraps Config to persist alias commands for supported PMs in our config JSON file and handles writing
@@ -21,19 +20,20 @@ const { writeFileAsync } = require('../util/asyncFs')
  *   when `_writeSourceFiles` is called.
  */
 class Alias {
-  constructor ({ config }) {
+  constructor ({ config, pm }) {
     this.config = config
+    this.supportedPms = pm.getSupportedPms()
 
-    this._writeFileAsync = writeFileAsync
+    this._writeFileAsync = writeFile
   }
 
   async aliasAllSupportedPackageManagers () {
-    SUPPORTED_PMS.forEach((pm) => this._addAliases(pm))
+    this.supportedPms.forEach((pm) => this._addAliases(pm))
     return this._writeSourceFiles()
   }
 
   async unaliasAllSupportedPackageManagers () {
-    SUPPORTED_PMS.forEach((pm) => this._removeAliases(pm))
+    this.supportedPms.forEach((pm) => this._removeAliases(pm))
     return this._writeSourceFiles()
   }
 

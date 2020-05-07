@@ -1,72 +1,78 @@
 const { spawn } = require('child_process')
-const { supportsColor } = require('chalk')
-const { SUPPORTED_PMS } = require('../constants')
-const ci = require('ci-info')
+const Npm = require('./npm')
+const Yarn = require('./yarn')
 
 class Pm {
   constructor ({ runlog }) {
+    this.supportedPms = {
+      npm: (args) => new Npm(args),
+      yarn: (args) => new Yarn(args)
+    }
     this.runlog = runlog
-    this.pm = null
-    this.pmArg = null
-    this.pmCmd = null
-  }
 
-  async init () {
-    // this takes the first arg (which should be the package manager)
-    // and removes it from the argv (so the actual package manager has
-    // a clean argv to parse)
-    this.pmArg = process.argv.splice(2, 1).pop().toLowerCase()
-    this.pmCmd = [this.pmArg, ...process.argv.slice(2)].join(' ')
-    const supportedPm = SUPPORTED_PMS.includes(this.pmArg)
-    this.supportedPm = supportedPm
-    if (!supportedPm) { return { supportedPm } }
+    const args = process.argv.slice(2)
+    this.packageManager = args[0]
+    this.packageManagerArgs = args.slice(1)
+    this.packageManagerCommand = args.join(' ')
 
-    const PackageManager = require(`./${this.pmArg}`)
-    this.pm = new PackageManager(process.argv)
+    runlog.record(runlog.keys.PM_CMD, this.packageManagerCommand)
 
-    const self = this
-    const noAdsPm = (cb) => { self.start({ silent: false }, cb) }
-    const adsPm = (cb) => { self.start({ silent: true }, cb) }
-    return { supportedPm, adsPm, noAdsPm }
+    this.supportedPm = typeof this.supportedPms[this.packageManager] !== 'undefined'
+    this.runlog.record(this.runlog.keys.SUPPORTED_PM, this.supportedPm)
+
+    if (this.supportedPm) {
+      this.pm = this.supportedPms[this.packageManager](process.argv.slice(1))
+    }
   }
 
   getPmCmd () {
-    return this.pmCmd
+    return this.packageManagerCommand
+  }
+
+  isSupportedPm () {
+    return this.supportedPm
+  }
+
+  getSupportedPms () {
+    return Object.keys(this.supportedPms)
   }
 
   isQuietMode () {
     if (this._isDefined('isQuietMode')) {
       return this.pm.isQuietMode()
     }
-    return this.pm.args.silent || this.pm.args.quiet
+    const args = this.pm.args || {}
+    return args.silent || args.quiet
   }
 
-  shouldShowAds () {
-    if (!this.supportedPm) return false
-    if (!this._isDefined('isSupportedVerb')) return false
-
-    const supportedVerb = this.pm.isSupportedVerb(this.pmCmd)
-    if (this.runlog.enabled) { // allow ads in CI if in debug mode
-      return supportedVerb
+  isSupportedVerb () {
+    if (this._isDefined('isSupportedVerb')) {
+      return this.pm.isSupportedVerb()
     }
-    return supportedVerb && !ci.isCI
+    return false
   }
 
-  start (opts = {}, cb = () => {}) {
+  passthrough (cb = () => {}) {
+    if (this._isDefined('passthrough')) {
+      return this.pm.passthrough(cb)
+    }
+    const child = spawn(this.packageManager, this.packageManagerArgs, {
+      stdio: 'inherit',
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: process.env.FORCE_COLOR || 1 }
+    })
+    child.on('error', (err) => cb(err))
+    child.on('exit', (code) => cb(null, { exit: true, code }))
+  }
+
+  start (cb = () => {}) {
     if (this._isDefined('start')) {
-      return this.pm.start(opts, cb)
+      return this.pm.start(cb)
     }
-    // default start
-    if (!opts.silent) {
-      const child = spawn(this.pmArg, process.argv.slice(2), { stdio: 'inherit', shell: true })
-      child.on('error', (err) => cb(err))
-      child.on('exit', (code) => cb(null, { exit: true, code }))
-      return
-    }
-    if (supportsColor) {
-      process.env.FORCE_COLOR = 3
-    }
-    const child = spawn(this.pmArg, process.argv.slice(2), { shell: true })
+    const child = spawn(this.packageManager, this.packageManagerArgs, {
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: process.env.FORCE_COLOR || 1 }
+    })
     child.on('error', (err) => cb(err))
     child.on('exit', (code) => cb(null, { exit: true, code }))
     child.stdout.on('data', (chunk) => cb(null, { stdout: chunk }))
@@ -126,7 +132,7 @@ class Pm {
   }
 
   _isDefined (fn) {
-    return typeof this.pm[fn] === 'function'
+    return this.pm && typeof this.pm[fn] === 'function'
   }
 }
 

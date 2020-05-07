@@ -1,7 +1,7 @@
 const test = require('ava')
 const sinon = require('sinon')
 const debug = require('debug')
-const { Runlog } = require('../../src/util/runlog')
+const Runlog = require('../../src/util/runlog')
 
 test.before(() => {
   sinon.stub(Date, 'now').returns(1234)
@@ -71,7 +71,7 @@ test('write | errors are preserved', async (t) => {
   await t.context.runlog.write()
 
   const expectedErrors = [
-    { stack: error.stack, message: error.message }
+    { message: error.message, stack: error.stack }
   ]
   t.deepEqual(t.context.tempWriter.write.lastCall.args, [
     JSON.stringify({ errors: expectedErrors, startTime: 1234, endTime: 1234 })
