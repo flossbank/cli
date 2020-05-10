@@ -8,3 +8,4 @@ ci/tests/node_modules
 TEST_RESULTS.xml
 coverage/
 flossbank
+*.zip
