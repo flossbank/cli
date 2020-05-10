@@ -5,3 +5,30 @@ steps:
     $env:DEBUG="flossbank"
     exec { npm run test:integ }
   displayName: Integ Tests
+- bash: |
+    zip "flossbank-win-x86_64.zip" flossbank
+  displayName: Zip binary
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+- task: CopyFiles@2
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '*.zip'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+- task: GitHubRelease@1
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+  inputs:
+    githubConnection: 'flossbank'
+    action: 'edit'
+    target: '$(Build.SourceVersion)'
+    repositoryName: '$(Build.Repository.Name)'
+    tag: '$(Build.SourceBranchName)'
+    assets: '$(Build.ArtifactStagingDirectory)/*'
+    assetUploadMode: 'replace'
+    isDraft: true
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
