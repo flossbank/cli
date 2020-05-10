@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"prepare": "npm run test:unit",
-		"build:local": "pkg --public -t node12 -o flossbank package.json",
+		"build:local": "./build.sh",
 		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
