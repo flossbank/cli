@@ -5,16 +5,13 @@ steps:
     $env:DEBUG="flossbank"
     exec { npm run test:integ }
   displayName: Integ Tests
-- bash: |
-    zip "flossbank-win-x86_64.zip" flossbank
-  displayName: Zip binary
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
-- task: CopyFiles@2
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+- task: ArchiveFiles@2
   inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)'
-    Contents: '*.zip'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    rootFolderOrFile: 'flossbank.exe'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/flossbank-win-x86_64.zip' 
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
 - task: PublishBuildArtifacts@1
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
   inputs:
