@@ -52,4 +52,7 @@ jobs:
   - template: ci/mac.yml
 
 trigger:
-  - master
+  branches:
+    include:
+      - master
+      - refs/tags/*
