@@ -1,6 +1,7 @@
 const help = require('./help')
 const version = require('./version')
 const auth = require('./auth')
+const check = require('./check')
 const install = require('./install')
 const uninstall = require('./uninstall')
 const wrap = require('./wrap')
@@ -16,6 +17,7 @@ const supportedArgs = new Map([
   ['version', version],
 
   ['auth', auth],
+  ['check', check],
   ['install', install],
   ['uninstall', uninstall],
   ['wrap', wrap],
