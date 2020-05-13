@@ -1,4 +1,4 @@
-module.exports = async ({ ui }) => {
+module.exports = ({ ui }) => {
   ui.showVersion()
   return 0
 }

@@ -1,4 +1,4 @@
-module.exports = async ({ config }) => {
-  console.log(config.getLastRunlog())
+module.exports = ({ ui, config }) => {
+  ui.stdout.write(config.getLastRunlog() + '\n')
   return 0
 }

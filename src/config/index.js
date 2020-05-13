@@ -49,7 +49,7 @@ class Config {
     return this.conf.get(CONFIG_API_KEY)
   }
 
-  async setApiKey (apiKey) {
+  setApiKey (apiKey) {
     return this.conf.set(CONFIG_API_KEY, apiKey)
   }
 

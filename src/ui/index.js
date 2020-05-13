@@ -13,11 +13,12 @@ const { sleep } = require('../util')
 const getSpinner = (runtime) => ['|', '/', '-', '\\'][Math.floor(runtime * 10) % 4]
 
 class Ui {
-  constructor ({ config, client, runlog }) {
+  constructor ({ config, client, runlog, stdout }) {
     this.config = config
     this.runlog = runlog
     this.client = client
     this.interval = AD_INTERVAL
+    this.stdout = stdout
 
     this.pmOutput = Buffer.alloc(0)
     this.pmDone = false
@@ -82,7 +83,7 @@ class Ui {
       // if currently showing ads, delete the ad and replace with pm output
       this.diffy.render(() => '')
       this.diffy.destroy()
-      process.stdout.write(this.pmOutput)
+      this.stdout.write(this.pmOutput)
     }
   }
 

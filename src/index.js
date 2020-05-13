@@ -32,7 +32,7 @@ function main () {
   const env = new Env({ config, alias })
   const profile = new Profile({ env, runlog })
 
-  const ui = new Ui({ config, runlog, client })
+  const ui = new Ui({ config, runlog, client, stdout: process.stdout })
   const args = new Args({ client, ui, config, alias, env, profile, runlog })
 
   app({ config, runlog, client, pm, ui, args })

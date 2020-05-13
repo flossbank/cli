@@ -49,7 +49,7 @@ class Args {
     if (typeof this.handler !== 'function') return
     let exitCode
     try {
-      exitCode = await this.handler(this.deps)
+      exitCode = await this.handler(this.deps, process.argv.slice(3))
     } catch (e) {
       this.deps.runlog.error(e)
       exitCode = 1

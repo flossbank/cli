@@ -1,12 +1,12 @@
-module.exports = async ({ alias, ui, runlog }) => {
-  const pm = process.argv[3]
+module.exports = async ({ alias, ui, runlog }, args = []) => {
+  const pm = args[0]
   const all = pm === 'all'
 
   const msg = pm && !all ? `Wrapping ${pm}...` : 'Wrapping supported package managers...'
-  process.stdout.write(msg)
+  ui.stdout.write(msg)
 
   if (pm && !all && !alias.isSupportedPm(pm)) {
-    process.stdout.write('skipped!')
+    ui.stdout.write('skipped!')
     ui.error(`\n${pm} is not a supported package manager.`)
     return 1
   }
@@ -22,6 +22,6 @@ module.exports = async ({ alias, ui, runlog }) => {
     runlog.error('failed to wrap', e)
     return 1
   }
-  process.stdout.write('done!\n')
+  ui.stdout.write('done!\n')
   return 0
 }

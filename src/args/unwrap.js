@@ -1,9 +1,9 @@
-module.exports = async ({ alias, ui, runlog }) => {
-  const pm = process.argv[3]
+module.exports = async ({ alias, ui, runlog }, args = []) => {
+  const pm = args[0]
   const all = pm === 'all'
 
   const msg = pm && !all ? `Unwrapping ${pm}...` : 'Unwrapping supported package managers...'
-  process.stdout.write(msg)
+  ui.stdout.write(msg)
 
   try {
     if (!pm || all) {
@@ -17,6 +17,6 @@ module.exports = async ({ alias, ui, runlog }) => {
     runlog.error('failed to unwrap', e)
     return 1
   }
-  process.stdout.write('done!\n')
+  ui.stdout.write('done!\n')
   return 0
 }

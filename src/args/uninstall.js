@@ -1,5 +1,5 @@
 module.exports = async ({ ui, config, env, profile, runlog }) => {
-  process.stdout.write('Removing Flossbank from supported shell profiles...')
+  ui.stdout.write('Removing Flossbank from supported shell profiles...')
   try {
     await env.deleteEnvFiles()
     await profile.uninstallFromProfiles()
@@ -9,8 +9,8 @@ module.exports = async ({ ui, config, env, profile, runlog }) => {
     return 1
   }
 
-  process.stdout.write('done!\n')
+  ui.stdout.write('done!\n\n')
 
-  console.log(`\nYou can safely delete the ${config.getInstallDir()} directory to remove Flossbank.`)
+  ui.stdout.write(`You can safely delete the ${config.getInstallDir()} directory to remove Flossbank.\n`)
   return 0
 }

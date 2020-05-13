@@ -1,7 +1,7 @@
-module.exports = async ({ ui, env, profile, config, runlog }) => {
-  process.stdout.write('Adding Flossbank to supported shell profiles...')
+module.exports = async ({ ui, env, profile, config, runlog }, args = []) => {
+  ui.stdout.write('Adding Flossbank to supported shell profiles...')
   try {
-    const installDir = process.argv[3]
+    const installDir = args[0]
 
     if (!installDir && !config.getInstallDir()) {
       throw new Error('install dir is required to install')
@@ -17,6 +17,6 @@ module.exports = async ({ ui, env, profile, config, runlog }) => {
     runlog.error('failed to install', e)
     return 1
   }
-  process.stdout.write('done!\n')
+  ui.stdout.write('done!\n')
   return 0
 }
