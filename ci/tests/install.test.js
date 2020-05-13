@@ -13,7 +13,7 @@ test.serial('integ: install to shell profiles', async (t) => {
   t.log('profile paths:', profilePaths)
   const profiles = await Promise.all(profilePaths.map(profile => readFile(profile)))
 
-  t.true(profiles.every(profile => profile.includes('. /tmp/.flossbank/env')))
+  t.true(profiles.every(profile => profile.includes('.flossbank')))
   t.log('after install all shell profiles were found sourcing flossbank env')
 })
 
@@ -28,6 +28,6 @@ test.serial('integ: uninstall from shell profiles', async (t) => {
   t.log('profile paths:', profilePaths)
   const profiles = await Promise.all(profilePaths.map(profile => readFile(profile)))
 
-  t.true(profiles.every(profile => !profile.includes('. /tmp/.flossbank/env')))
+  t.true(profiles.every(profile => !profile.includes('.flossbank')))
   t.log('after uninstall no shell profiles were found sourcing flossbank env')
 })
