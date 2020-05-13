@@ -24,8 +24,8 @@ const supportedArgs = new Map([
 ])
 
 class Args {
-  constructor ({ config, api, ui, alias, profile, runlog }) {
-    this.deps = { config, api, ui, alias, profile, runlog }
+  constructor ({ config, api, ui, alias, profile, env, runlog }) {
+    this.deps = { config, api, ui, alias, profile, env, runlog }
     this._haveArgs = false
     const firstArg = process.argv[2]
 

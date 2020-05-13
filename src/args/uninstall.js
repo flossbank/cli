@@ -1,11 +1,15 @@
-module.exports = async ({ ui, profile, runlog }) => {
-  ui.info('Uninstalling Flossbank from supported shell profiles...')
+module.exports = async ({ ui, config, env, profile, runlog }) => {
+  process.stdout.write('Removing Flossbank from supported shell profiles...')
   try {
+    await env.deleteEnvFiles()
     await profile.uninstallFromProfiles()
   } catch (e) {
-    ui.error('Flossbank failed to uninstall. Please contact support@flossbank.com for help.')
+    ui.error('\nFlossbank failed to uninstall. Please contact support@flossbank.com for help.')
     runlog.error('failed to uninstall', e)
     return
   }
-  ui.info('Flossbank successfully uninstalled from supported shell profiles.')
+
+  process.stdout.write('done!\n')
+
+  console.log(`\nYou can safely delete the ${config.getInstallDir()} directory to remove Flossbank.`)
 }
