@@ -1,12 +1,18 @@
 module.exports = async ({ alias, ui, runlog }) => {
-  ui.info('Unwrapping supported package managers...')
+  const pm = process.argv[3]
+  const msg = pm ? `Unwrapping ${pm}...` : 'Unwrapping supported package managers...'
+  process.stdout.write(msg)
   try {
-    await alias.unaliasAllSupportedPackageManagers()
+    if (!pm || pm === 'all') {
+      await alias.unaliasAllSupportedPackageManagers()
+    } else {
+      await alias.unaliasPackageManager(pm)
+    }
   } catch (e) {
-    ui.error('Flossbank failed to unwrap supported package managers. Please contact support@flossbank.com for help.')
+    const errorMsg = pm ? `Flossbank failed to unwrap ${pm}` : 'Flossbank failed to unwrap supported package managers.'
+    ui.error(`\n${errorMsg}Please contact support@flossbank.com for help.`)
     runlog.error('failed to unwrap', e)
     return
   }
-  ui.info('Flossbank successfully unwrapped supported package managers.')
-  ui.info('\nClose and reopen your terminal for the changes to take effect.')
+  process.stdout.write('done!\n')
 }
