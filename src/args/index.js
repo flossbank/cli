@@ -45,8 +45,16 @@ class Args {
     return this._haveArgs
   }
 
-  act () {
-    return typeof this.handler === 'function' && this.handler(this.deps)
+  async act () {
+    if (typeof this.handler !== 'function') return
+    let exitCode
+    try {
+      exitCode = await this.handler(this.deps)
+    } catch (e) {
+      this.deps.runlog.error(e)
+      exitCode = 1
+    }
+    return exitCode
   }
 }
 

@@ -6,10 +6,11 @@ module.exports = async ({ ui, config, env, profile, runlog }) => {
   } catch (e) {
     ui.error('\nFlossbank failed to uninstall. Please contact support@flossbank.com for help.')
     runlog.error('failed to uninstall', e)
-    return
+    return 1
   }
 
   process.stdout.write('done!\n')
 
   console.log(`\nYou can safely delete the ${config.getInstallDir()} directory to remove Flossbank.`)
+  return 0
 }

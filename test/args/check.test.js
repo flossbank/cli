@@ -2,10 +2,6 @@ const test = require('ava')
 const sinon = require('sinon')
 const check = require('../../src/args/check')
 
-test.before(() => {
-  sinon.stub(process, 'exit')
-})
-
 test.beforeEach((t) => {
   t.context.config = {
     getApiKey: sinon.stub(),
@@ -14,8 +10,6 @@ test.beforeEach((t) => {
   t.context.runlog = {
     debug: sinon.stub()
   }
-
-  process.exit.resetHistory()
 })
 
 test.serial('exit 0 when fully configured', (t) => {
@@ -23,9 +17,7 @@ test.serial('exit 0 when fully configured', (t) => {
   config.getApiHost.returns(true)
   config.getApiKey.returns(true)
 
-  check({ config, runlog })
-
-  t.true(process.exit.calledWith(0))
+  t.is(check({ config, runlog }), 0)
 })
 
 test.serial('exit 1 when no api key', (t) => {
@@ -33,9 +25,7 @@ test.serial('exit 1 when no api key', (t) => {
   config.getApiHost.returns(true)
   config.getApiKey.returns(false)
 
-  check({ config, runlog })
-
-  t.true(process.exit.calledWith(1))
+  t.is(check({ config, runlog }), 1)
 })
 
 test.serial('exit 1 when no api host', (t) => {
@@ -43,7 +33,5 @@ test.serial('exit 1 when no api host', (t) => {
   config.getApiHost.returns(false)
   config.getApiKey.returns(true)
 
-  check({ config, runlog })
-
-  t.true(process.exit.calledWith(1))
+  t.is(check({ config, runlog }), 1)
 })

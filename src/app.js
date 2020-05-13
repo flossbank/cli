@@ -30,8 +30,8 @@ module.exports = async ({ runlog, client, pm, ui, args }) => {
   runlog.record(runlog.keys.FB_VERSION, version)
 
   if (args.haveArgs()) {
-    await args.act()
-    return exit(runlog, 'flossbank args')
+    const exitCode = await args.act()
+    return exit(runlog, 'flossbank args', exitCode)
   }
 
   if (!pm.supportedPm) {

@@ -15,7 +15,8 @@ module.exports = async ({ ui, env, profile, config, runlog }) => {
   } catch (e) {
     ui.error('\nFlossbank failed to install. Please contact support@flossbank.com for help.')
     runlog.error('failed to install', e)
-    return
+    return 1
   }
   process.stdout.write('done!\n')
+  return 0
 }
