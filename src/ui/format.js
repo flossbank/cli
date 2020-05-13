@@ -1,5 +1,5 @@
 const boxen = require('boxen')
-const chalk = require('chalk')
+const color = require('kleur')
 const wrap = require('./wrap')
 
 const colors = ['yellow', 'green', 'magenta', 'cyan', 'red']
@@ -10,22 +10,22 @@ function getNextColor () {
 }
 
 function formatTitle (title) {
-  return chalk.white.bold(wrap(title))
+  return color.white().bold(wrap(title))
 }
 
 function formatText (text) {
-  return chalk.white(
+  return color.white(
     wrap(
       text.replace(
         /{{([^}]*?)}}/g,
-        (_, url) => chalk.blue.underline(url)
+        (_, url) => color.blue().underline(url)
       )
     )
   )
 }
 
 function formatUrl (url) {
-  return chalk.blue.underline(wrap(url, { cut: true }))
+  return color.blue().underline(wrap(url, { cut: true }))
 }
 
 module.exports = function formatMessage (message) {

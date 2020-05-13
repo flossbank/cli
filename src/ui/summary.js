@@ -1,4 +1,4 @@
-const chalk = require('chalk')
+const color = require('kleur')
 
 const MAX_TITLE_LENGTH = 20
 const TITLE_LENGTH_WITH_ELLIPSIS = 23
@@ -25,11 +25,11 @@ module.exports = (ads) => {
   const uniqueAds = ads.filter(uniqueBy('id'))
 
   const adSummary = uniqueAds.reduce((output, ad) => {
-    const title = chalk.white.bold(truncateTitle(ad.title))
-    const url = chalk.blue(ad.url)
+    const title = color.white().bold(truncateTitle(ad.title))
+    const url = color.blue(ad.url)
     output.push(`${title} | ${url}`)
     return output
-  }, [chalk.white.bold('======== Flossbank Ad Summary ========\n')])
+  }, [color.white().bold('======== Flossbank Ad Summary ========\n')])
 
   return adSummary.join('\n')
 }
