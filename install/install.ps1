@@ -4,7 +4,7 @@
 # Thanks deno.land for inspiration <3
 $ErrorActionPreference = 'Stop'
 
-$Target = 'windows-x86_64'
+$Target = 'win-x86_64'
 
 $FlossbankInstall = $env:FLOSSBANK_INSTALL
 $BinDir = if ($FlossbankInstall) {
@@ -78,14 +78,18 @@ Expand-Archive $FlossbankZip -Destination $BinDir -Force
 Remove-Item $FlossbankZip
 
 Write-Output ""
-$FlossbankExe install "$FlossbankInstall"
-$FlossbankExe wrap all
+$InstallArgs = "install", "$FlossbankInstall"
+$WrapArgs = "wrap", "all"
+
+& $FlossbankExe $InstallArgs
+& $FlossbankExe $WrapArgs
 Write-Output ""
 
-if (!($FlossbankExe check)) {
+& $FlossbankExe 'check'
+if ($LASTEXITCODE -ne 0) {
   Write-Output "The next step is to verify your email address."
   Write-Output ""
-  $FlossbankExe auth
+  & $FlossbankExe 'auth'
 }
 
 $User = [EnvironmentVariableTarget]::User
