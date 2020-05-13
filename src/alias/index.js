@@ -27,6 +27,21 @@ class Alias {
     this._writeFileAsync = writeFile
   }
 
+  isSupportedPm (pm) {
+    return this.supportedPms.includes(pm)
+  }
+
+  async aliasPackageManager (pm) {
+    if (!this.isSupportedPm(pm)) return
+    this._addAliases(pm)
+    return this._writeSourceFiles()
+  }
+
+  async unaliasPackageManager (pm) {
+    this._removeAliases(pm)
+    return this._writeSourceFiles()
+  }
+
   async aliasAllSupportedPackageManagers () {
     this.supportedPms.forEach((pm) => this._addAliases(pm))
     return this._writeSourceFiles()

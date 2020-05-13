@@ -2,3 +2,35 @@ steps:
 - script: |
     DEBUG=flossbank npm run test:integ
   displayName: Tests
+- bash: |
+    case $(uname -s) in
+    Darwin) target="macos-x86_64" ;;
+    *) target="linux-x86_64" ;;
+    esac
+
+    zip "flossbank-${target}.zip" flossbank
+  displayName: Zip binary
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+- task: CopyFiles@2
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '*.zip'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+- task: GitHubRelease@1
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+  inputs:
+    githubConnection: 'gh_flossbank'
+    action: 'edit'
+    target: '$(Build.SourceVersion)'
+    repositoryName: '$(Build.Repository.Name)'
+    tag: '$(Build.SourceBranchName)'
+    assets: '$(Build.ArtifactStagingDirectory)/*'
+    assetUploadMode: 'replace'
+    isDraft: true
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'

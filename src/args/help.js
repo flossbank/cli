@@ -1,3 +1,4 @@
-module.exports = async ({ ui }) => {
+module.exports = ({ ui }) => {
   ui.printHelp()
+  return 0
 }

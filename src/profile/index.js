@@ -47,8 +47,8 @@ const SUPPORTED_SHELLS = {
  *  respective profiles updated with the source command.
  */
 class Profile {
-  constructor ({ alias, runlog }) {
-    this.alias = alias
+  constructor ({ env, runlog }) {
+    this.env = env
     this.runlog = runlog
   }
 
@@ -73,14 +73,14 @@ class Profile {
 
     await Promise.all(
       shellProfiles.map(profile => {
-        if (install) return this._appendLineToProfile(profile, this.alias.getShellSourceCommand())
-        if (uninstall) return this._removeLineFromProfile(profile, this.alias.getShellSourceCommand())
+        if (install) return this._appendLineToProfile(profile, this.env.getShellSourceCommand())
+        if (uninstall) return this._removeLineFromProfile(profile, this.env.getShellSourceCommand())
       })
     )
     await Promise.all(
       powerProfiles.map(profile => {
-        if (install) return this._appendLineToProfile(profile, this.alias.getPowerSourceCommand())
-        if (uninstall) return this._removeLineFromProfile(profile, this.alias.getPowerSourceCommand())
+        if (install) return this._appendLineToProfile(profile, this.env.getPowerSourceCommand())
+        if (uninstall) return this._removeLineFromProfile(profile, this.env.getPowerSourceCommand())
       })
     )
   }

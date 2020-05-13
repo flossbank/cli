@@ -11,6 +11,7 @@ module.exports = {
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
   CONFIG_AUTH_OVERRIDES: 'authOverrides',
+  CONFIG_INSTALL_DIR: 'installDir',
   SHEBANG: '#!/usr/bin/env bash',
   USAGE: `
   Usage:

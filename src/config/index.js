@@ -8,6 +8,7 @@ const {
   CONFIG_ALIASES,
   CONFIG_LAST_RUNLOG,
   CONFIG_AUTH_OVERRIDES,
+  CONFIG_INSTALL_DIR,
   DEFAULT_ALIASES
 } = require('../constants')
 
@@ -48,7 +49,7 @@ class Config {
     return this.conf.get(CONFIG_API_KEY)
   }
 
-  async setApiKey (apiKey) {
+  setApiKey (apiKey) {
     return this.conf.set(CONFIG_API_KEY, apiKey)
   }
 
@@ -68,6 +69,14 @@ class Config {
 
   setAuthOverrides (overrides) {
     return this.conf.set(CONFIG_AUTH_OVERRIDES, overrides)
+  }
+
+  getInstallDir () {
+    return this.conf.get(CONFIG_INSTALL_DIR)
+  }
+
+  setInstallDir (dir) {
+    return this.conf.set(CONFIG_INSTALL_DIR, dir)
   }
 }
 

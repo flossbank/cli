@@ -1,5 +1,5 @@
 const readline = require('readline')
-const chalk = require('chalk')
+const color = require('kleur')
 const Diffy = require('diffy')
 const prompts = require('prompts')
 const ora = require('ora')
@@ -13,11 +13,12 @@ const { sleep } = require('../util')
 const getSpinner = (runtime) => ['|', '/', '-', '\\'][Math.floor(runtime * 10) % 4]
 
 class Ui {
-  constructor ({ config, client, runlog }) {
+  constructor ({ config, client, runlog, stdout }) {
     this.config = config
     this.runlog = runlog
     this.client = client
     this.interval = AD_INTERVAL
+    this.stdout = stdout
 
     this.pmOutput = Buffer.alloc(0)
     this.pmDone = false
@@ -36,7 +37,7 @@ class Ui {
     const suffix = this.pmDone ? '...done!' : '.'.repeat(Math.floor(this.runtime % 6))
     return this.showPmOutput
       ? `${this.getToggleString()}${suffix}`
-      : `Flossbank is executing ${chalk.bold(pmCmd)}${suffix}`
+      : `Flossbank is executing ${color.bold(pmCmd)}${suffix}`
   }
 
   getToggleString () {
@@ -82,7 +83,7 @@ class Ui {
       // if currently showing ads, delete the ad and replace with pm output
       this.diffy.render(() => '')
       this.diffy.destroy()
-      process.stdout.write(this.pmOutput)
+      this.stdout.write(this.pmOutput)
     }
   }
 
@@ -146,7 +147,6 @@ class Ui {
     const { email } = await authPrompts.getEmail()
     if (!email) {
       this.runlog.debug('did not get an email; cannot continue authentication flow')
-      authPrompts.authenticationFailed()
       return
     }
 
@@ -156,28 +156,21 @@ class Ui {
       pollingToken = res.pollingToken
     } catch (e) {
       this.runlog.error('failed to request registration email: %O', e)
-      console.error(chalk.red('Unable to begin registration process. Please email support@flossbank.com for support.'))
+      console.error(color.red('Unable to begin registration process. Please email support@flossbank.com for support.'))
       return
     }
 
-    const progress = ora(
-      chalk.bold('Please check your email and follow the instructions to complete registration!')
-    )
-
+    const progress = ora('Check your email and follow the instructions to complete registration!')
     progress.start()
     let apiKey
     try {
       apiKey = await this.client.pollForApiKey(email, pollingToken)
     } catch (e) {
-      progress.fail(
-        chalk.bold('We were unable to complete your registration. Please try again or email support@flossbank.com for help.')
-      )
+      progress.fail('We were unable to complete your registration. Please try again or email support@flossbank.com for help.')
       return
     }
+    progress.succeed('Registration successful!')
 
-    progress.succeed(
-      chalk.bold('Success! Thank you for registering with Flossbank!')
-    )
     return apiKey.trim()
   }
 
@@ -198,7 +191,7 @@ class Ui {
   }
 
   sayGoodbye () {
-    console.log(chalk.white.bold('\nThanks for supporting the Open Source community with Flossbank ♥'))
+    console.log(color.white().bold('\nThanks for supporting the Open Source community with Flossbank ♥'))
   }
 
   printHelp () {
@@ -210,15 +203,15 @@ class Ui {
   }
 
   info (msg) {
-    console.log(chalk.white.bold(msg))
+    console.log(color.white().bold(msg))
   }
 
   warn (msg) {
-    console.log(chalk.yellow(msg))
+    console.log(color.yellow(msg))
   }
 
   error (msg) {
-    console.log(chalk.red(msg))
+    console.log(color.red(msg))
   }
 }
 

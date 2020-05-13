@@ -1,6 +1,6 @@
 {
 	"name": "@flossbank/cli",
-	"version": "0.0.20",
+	"version": "0.0.25",
 	"license": "MIT",
 	"bin": {
 		"flossbank": "src/index.js"
@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"prepare": "npm run test:unit",
-		"build:local": "pkg --public -t node12 -o flossbank package.json",
+		"build": "pkg --public -t node12 -o flossbank package.json",
 		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
@@ -30,11 +30,12 @@
 	"dependencies": {
 		"agentkeepalive": "^4.1.2",
 		"boxen": "^4.1.0",
-		"chalk": "^2.4.2",
 		"conf": "^6.2.0",
 		"debug": "^4.1.1",
+		"del": "^5.1.0",
 		"diffy": "^2.1.0",
 		"got": "^11.1.0",
+		"kleur": "^3.0.3",
 		"make-dir": "^3.0.2",
 		"minimist": "^1.2.0",
 		"nopt": "^4.0.3",
