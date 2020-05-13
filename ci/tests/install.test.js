@@ -3,7 +3,7 @@ const { fs: { readFile } } = require('./util/_common')
 const flossbank = require('./util/_flossbank')
 
 test.serial('integ: install to shell profiles', async (t) => {
-  const runlog = await flossbank.run(['install'])
+  const runlog = await flossbank.run(['install', '/tmp/.flossbank'])
 
   const profilePaths = [
     ...runlog.detectedShellFormatProfiles,
@@ -13,12 +13,12 @@ test.serial('integ: install to shell profiles', async (t) => {
   t.log('profile paths:', profilePaths)
   const profiles = await Promise.all(profilePaths.map(profile => readFile(profile)))
 
-  t.true(profiles.every(profile => profile.includes('flossbank_aliases')))
-  t.log('after install all shell profiles were found sourcing flossbank aliases')
+  t.true(profiles.every(profile => profile.includes('. /tmp/.flossbank/env')))
+  t.log('after install all shell profiles were found sourcing flossbank env')
 })
 
 test.serial('integ: uninstall from shell profiles', async (t) => {
-  const runlog = await flossbank.run(['uninstall'])
+  const runlog = await flossbank.run(['uninstall', '/tmp/.flossbank/env'])
 
   const profilePaths = [
     ...runlog.detectedShellFormatProfiles,
@@ -28,6 +28,6 @@ test.serial('integ: uninstall from shell profiles', async (t) => {
   t.log('profile paths:', profilePaths)
   const profiles = await Promise.all(profilePaths.map(profile => readFile(profile)))
 
-  t.true(profiles.every(profile => !profile.includes('flossbank_aliases')))
-  t.log('after uninstall no shell profiles were found sourcing flossbank aliases')
+  t.true(profiles.every(profile => !profile.includes('. /tmp/.flossbank/env')))
+  t.log('after uninstall no shell profiles were found sourcing flossbank env')
 })

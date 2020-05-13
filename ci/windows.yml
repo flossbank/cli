@@ -11,13 +11,13 @@ steps:
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/flossbank-win-x86_64.zip' 
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
 - task: PublishBuildArtifacts@1
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
 - task: GitHubRelease@1
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags') 
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
   inputs:
     githubConnection: 'gh_flossbank'
     action: 'edit'
