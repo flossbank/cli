@@ -92,12 +92,7 @@ if ($LASTEXITCODE -ne 0) {
   & $FlossbankExe 'auth'
 }
 
-$User = [EnvironmentVariableTarget]::User
-$Path = [Environment]::GetEnvironmentVariable('Path', $User)
-if (!(";$Path;".ToLower() -like "*;$BinDir;*".ToLower())) {
-  [Environment]::SetEnvironmentVariable('Path', "$Path;$BinDir", $User)
-  $Env:Path += ";$BinDir"
-}
+. "$FlossbankInstall\env.ps1"
 
 Write-Output ""
 Write-Output "Flossbank ($FlossbankVersion) is now installed and registered. Great!"
