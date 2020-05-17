@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright 2020 Flossbank. All rights reserved. MIT license.
 # TODO(everyone): Keep this script simple and easily auditable.
+# Thanks deno.land for inspiration <3
 set -e
 
 case $(uname -s) in
