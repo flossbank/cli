@@ -19,8 +19,10 @@ module.exports = {
     flossbank <package manager command>
 
   Options:
-    --auth  Authenticates with Flossbank API
-    --help  Shows this help output
+    auth <token>    Authenticates with Flossbank API
+    wrap [pm]       Wraps specified package manager
+    unwrap [pm]     Unwraps specified package manager
+    help            Shows this help output
 
   Examples:
     To run \`npm install\` through Flossbank:

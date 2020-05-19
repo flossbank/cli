@@ -60,7 +60,7 @@ test('catches errors', async (t) => {
 
   deps.config.getInstallDir.throws(new Error('the worst'))
 
-  t.is(await install(deps, []), 1)
+  t.is(await install(deps), 1)
   t.true(deps.ui.error.calledOnce)
   t.true(deps.runlog.error.calledOnce)
   t.true(deps.config.setInstallDir.notCalled)

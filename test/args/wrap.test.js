@@ -48,12 +48,22 @@ test('all pms get wrapped if all is input', async (t) => {
   t.true(deps.alias.aliasAllSupportedPackageManagers.calledOnce)
 })
 
-test('catches errors', async (t) => {
+test('catches errors (all)', async (t) => {
   const { deps } = t.context
 
   deps.alias.aliasAllSupportedPackageManagers.throws(new Error('the worst'))
 
-  t.is(await wrap(deps, []), 1)
+  t.is(await wrap(deps), 1)
+  t.true(deps.ui.error.calledOnce)
+  t.true(deps.runlog.error.calledOnce)
+})
+
+test('catches errors (specific)', async (t) => {
+  const { deps } = t.context
+
+  deps.alias.aliasPackageManager.throws(new Error('the worst'))
+
+  t.is(await wrap(deps, ['npm']), 1)
   t.true(deps.ui.error.calledOnce)
   t.true(deps.runlog.error.calledOnce)
 })

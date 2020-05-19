@@ -45,8 +45,8 @@ module.exports = async ({ runlog, client, pm, ui, args }) => {
   }
 
   if (!client.haveApiKey()) {
-    ui.error('Flossbank: no API key configured; run "flossbank auth" to authenticate.')
-    return exit(runlog, 'no api key', 1)
+    runlog.record(runlog.keys.PASSTHROUGH_MODE, true)
+    return pm.passthrough(() => exit(runlog, 'no api key'))
   }
 
   let initialAdBatchSize = 0
