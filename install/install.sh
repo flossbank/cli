@@ -20,6 +20,27 @@
 
 set -e
 
+flossbank_install="${FLOSSBANK_INSTALL:-$HOME/.flossbank}"
+bin_dir="$flossbank_install/bin"
+exe="$bin_dir/flossbank"
+
+if [ -z "$FLOSSBANK_INSTALL_TOKEN" ]; then
+  # We might not need an install token: Flossbank might already be installed
+  # and an API key may already be configured. So we'll check that here.
+  if [ ! -x "$exe" ] || ! "$exe" check; then
+    # The installer needs a token and it isn't present as an env var.
+    # When we ask for the user to type it in, this script will try to read
+    # from stdin. But this script was piped into `sh`. Instead we're going
+    # to explicitly connect /dev/tty to the installer's stdin, ala https://sh.rustup.rs.
+    if [ ! -t 1 ]; then
+        err "Unable to run interactively. Run with FLOSSBANK_INSTALL_TOKEN=<token>."
+    fi
+    while [ -z "$FLOSSBANK_INSTALL_TOKEN" ]; do
+      read -p "Please enter install token to continue: " FLOSSBANK_INSTALL_TOKEN < /dev/tty
+    done
+  fi
+fi
+
 case $(uname -s) in
 Darwin) target="macos-x86_64" ;;
 *) target="linux-x86_64" ;;
@@ -29,10 +50,6 @@ if [ $(uname -m) != "x86_64" ]; then
 	echo "Unsupported architecture $(uname -m). Only x64 binaries are available."
 	exit
 fi
-
-flossbank_install="${FLOSSBANK_INSTALL:-$HOME/.flossbank}"
-bin_dir="$flossbank_install/bin"
-exe="$bin_dir/flossbank"
 
 if [ ! -d "$bin_dir" ]; then
 	mkdir -p "$bin_dir"
@@ -83,13 +100,8 @@ rm "$exe.zip"
 echo
 $exe install "$flossbank_install"
 $exe wrap all
+[ ! -z "$FLOSSBANK_INSTALL_TOKEN" ] && $exe auth "$FLOSSBANK_INSTALL_TOKEN"
 echo
-
-if ! $exe check; then
-  echo "The next step is to verify your email address."
-  echo
-  $exe auth
-fi
 
 echo
 echo "Flossbank (${flossbank_version}) is now installed and registered. Great!"
