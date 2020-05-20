@@ -1,9 +1,6 @@
 const readline = require('readline')
 const color = require('kleur')
 const Diffy = require('diffy')
-const prompts = require('prompts')
-const ora = require('ora')
-const authPrompts = require('./authPrompts')
 const format = require('./format')
 const summary = require('./summary')
 const { AD_INTERVAL, USAGE } = require('../constants')
@@ -134,44 +131,6 @@ class Ui {
     }
     const adsSummary = summary(this.client.getSeenAds())
     if (adsSummary) { console.log(adsSummary) }
-  }
-
-  async authenticate () {
-    if (this.runlog.enabled) {
-      prompts.override(this.config.getAuthOverrides())
-    }
-    if (this.client.haveApiKey()) {
-      const { shouldContinue } = await authPrompts.confirm()
-      if (!shouldContinue) { return }
-    }
-    const { email } = await authPrompts.getEmail()
-    if (!email) {
-      this.runlog.debug('did not get an email; cannot continue authentication flow')
-      return
-    }
-
-    let pollingToken
-    try {
-      const res = await this.client.requestRegistration(email)
-      pollingToken = res.pollingToken
-    } catch (e) {
-      this.runlog.error('failed to request registration email: %O', e)
-      console.error(color.red('Unable to begin registration process. Please email support@flossbank.com for support.'))
-      return
-    }
-
-    const progress = ora('Check your email and follow the instructions to complete registration!')
-    progress.start()
-    let apiKey
-    try {
-      apiKey = await this.client.pollForApiKey(email, pollingToken)
-    } catch (e) {
-      progress.fail('We were unable to complete your registration. Please try again or email support@flossbank.com for help.')
-      return
-    }
-    progress.succeed('Registration successful!')
-
-    return apiKey.trim()
   }
 
   setPmOutput (error, stdout, stderr) {

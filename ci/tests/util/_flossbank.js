@@ -23,8 +23,7 @@ module.exports = {
       config.setApiKey('')
       config.setApiHost(INTEG_TEST_HOST)
     },
-    getApiKey: () => config.getApiKey(),
-    setAuthOverrides: (overrides) => config.setAuthOverrides(overrides)
+    getApiKey: () => config.getApiKey()
   },
   run: async function (args) {
     const runFn = process.env.FLOSSBANK_TEST_SOURCE

@@ -12,7 +12,7 @@ module.exports = {
   exec,
   constants: {
     INTEG_TEST_KEY: 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34b48357d1',
-    INTEG_TEST_EMAIL: 'test@flossbank.com',
+    INTEG_TEST_TOKEN: 'cf667c9381f7792bfa772025ff8ee93b89d9a757e6732e87611a0c34b48357d1',
     INTEG_TEST_HOST: 'https://api.flossbank.io',
     DEFAULT_HOST: 'https://api.flossbank.com'
   }

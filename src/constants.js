@@ -10,7 +10,6 @@ module.exports = {
   CONFIG_API_HOST: 'apiHost',
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
-  CONFIG_AUTH_OVERRIDES: 'authOverrides',
   CONFIG_INSTALL_DIR: 'installDir',
   SHEBANG: '#!/usr/bin/env bash',
   USAGE: `
@@ -19,8 +18,10 @@ module.exports = {
     flossbank <package manager command>
 
   Options:
-    --auth  Authenticates with Flossbank API
-    --help  Shows this help output
+    auth <token>    Authenticates with Flossbank API
+    wrap [pm]       Wraps specified package manager
+    unwrap [pm]     Unwraps specified package manager
+    help            Shows this help output
 
   Examples:
     To run \`npm install\` through Flossbank:

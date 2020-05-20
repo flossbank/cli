@@ -7,7 +7,6 @@ const {
   CONFIG_API_HOST,
   CONFIG_ALIASES,
   CONFIG_LAST_RUNLOG,
-  CONFIG_AUTH_OVERRIDES,
   CONFIG_INSTALL_DIR,
   DEFAULT_ALIASES
 } = require('../constants')
@@ -59,16 +58,6 @@ class Config {
 
   getLastRunlog (logpath) {
     return this.conf.get(CONFIG_LAST_RUNLOG, logpath)
-  }
-
-  getAuthOverrides () {
-    const overrides = this.conf.get(CONFIG_AUTH_OVERRIDES) || {}
-    this.conf.delete(CONFIG_AUTH_OVERRIDES) // only allow overrides to be used once after setting
-    return overrides
-  }
-
-  setAuthOverrides (overrides) {
-    return this.conf.set(CONFIG_AUTH_OVERRIDES, overrides)
   }
 
   getInstallDir () {

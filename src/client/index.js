@@ -1,7 +1,6 @@
 const HttpAgent = require('agentkeepalive')
 const got = require('got')
 const { HttpsAgent } = HttpAgent
-const { sleep } = require('../util')
 
 class ApiClient {
   constructor ({ config, runlog }) {
@@ -25,8 +24,7 @@ class ApiClient {
     this.routes = {
       SESSION_START: 'session/start',
       SESSION_COMPLETE: 'session/complete',
-      USER_REGISTER: 'user/register',
-      COMPLETE_REG: 'user/complete-registration'
+      USER_COMPLETE_INSTALL: 'user/complete-install'
     }
 
     this.config = config
@@ -99,24 +97,11 @@ class ApiClient {
     return ad
   }
 
-  async requestRegistration (email) {
-    // can't use createRequest for this call since we necessarily have no api key yet
-    return this.got.post(this.routes.USER_REGISTER, { json: { email } })
-  }
-
-  async pollForApiKey (email, pollingToken, retriesRemaining = 150) {
-    if (!retriesRemaining) {
-      // Unable to complete registration. Please try again or contact support@flossbank.com for help.
-      throw new Error('Retries exhausted')
-    }
-    try {
-      const res = await this.got.post(this.routes.COMPLETE_REG, { json: { email, pollingToken } })
-      return res.apiKey
-    } catch (e) {
-      this.runlog.debug('no API key found for email/polling token; retrying again in 2s', e)
-      await sleep(2000) // wait 2s then try again
-      return this.pollForApiKey(email, pollingToken, retriesRemaining - 1)
-    }
+  async getApiKey ({ token }) {
+    const res = await this.got.post(this.routes.USER_COMPLETE_INSTALL, {
+      json: { token }
+    })
+    return res.apiKey
   }
 }
 

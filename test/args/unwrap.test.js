@@ -38,12 +38,22 @@ test('all pms get unwrapped if all is input', async (t) => {
   t.true(deps.alias.unaliasAllSupportedPackageManagers.calledOnce)
 })
 
-test('catches errors', async (t) => {
+test('catches errors (all)', async (t) => {
   const { deps } = t.context
 
   deps.alias.unaliasAllSupportedPackageManagers.throws(new Error('the worst'))
 
-  t.is(await unwrap(deps, []), 1)
+  t.is(await unwrap(deps), 1)
+  t.true(deps.ui.error.calledOnce)
+  t.true(deps.runlog.error.calledOnce)
+})
+
+test('catches errors (specific)', async (t) => {
+  const { deps } = t.context
+
+  deps.alias.unaliasPackageManager.throws(new Error('the worst'))
+
+  t.is(await unwrap(deps, ['npm']), 1)
   t.true(deps.ui.error.calledOnce)
   t.true(deps.runlog.error.calledOnce)
 })
