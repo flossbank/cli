@@ -28,7 +28,5 @@ module.exports = {
       $ flossbank npm install
     To run \`yarn add meow\` through Flossbank:
       $ flossbank yarn add meow
-    To authenticate (or re-authenticate) with the Flossbank API:
-      $ flossbank --auth
 `
 }

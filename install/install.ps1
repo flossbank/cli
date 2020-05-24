@@ -20,16 +20,28 @@
 
 $ErrorActionPreference = 'Stop'
 
-$Target = 'win-x86_64'
-
 $FlossbankInstall = $env:FLOSSBANK_INSTALL
 if (!$FlossbankInstall) {
   $FlossbankInstall = Join-Path $Home ".flossbank"
 }
 
+if ($PSVersionTable.PSEdition -ne 'Core' -Or $IsWindows) {
+  # if not using PowerShell Core, we must be on Windows PowerShell
+  # if we are using PowerShell Core, $IsWindows should be exposed
+  $Target = 'win-x86_64'
+  $ExeName = 'flossbank.exe'
+} else {
+  $ExeName = 'flossbank'
+  $Target = if ($IsMacOS) {
+    'macos-x86_64'
+  } else {
+    'linux-x86_64'
+  }
+}
+
 $BinDir = Join-Path $FlossbankInstall "bin"
 $FlossbankZip = Join-Path $BinDir "flossbank.zip"
-$FlossbankExe = Join-Path $BinDir "flossbank.exe"
+$FlossbankExe = Join-Path $BinDir $ExeName
 
 $FlossbankInstallToken = $env:FLOSSBANK_INSTALL_TOKEN
 if (!(Test-Path $FlossbankExe)) {
@@ -88,7 +100,7 @@ $FlossbankUri = if ($PSVersionTable.PSEdition -eq 'Core') {
 if (!$FlossbankUri) {
   Write-Output ""
   Write-Output "Error: unable to locate latest release on GitHub. Please try again or email support@flossbank.com for help!"
-  return 1
+  return
 }
 
 $FlossbankVersion = $FlossbankUri.Split("/")[7]
@@ -100,18 +112,27 @@ Write-Output "  - Downloading $FlossbankFileName..."
 Invoke-WebRequest $FlossbankUri -OutFile $FlossbankZip -UseBasicParsing
 Expand-Archive $FlossbankZip -Destination $BinDir -Force
 Remove-Item $FlossbankZip
+if ($IsMacOS -Or $IsLinux) {
+  chmod +x "$FlossbankExe"
+}
 
 Write-Output ""
 $InstallArgs = "install", "$FlossbankInstall"
 $WrapArgs = "wrap", "all"
 $AuthArgs = "auth", "$FlossbankInstallToken"
 
-& $FlossbankExe $InstallArgs
-& $FlossbankExe $WrapArgs
+$installCall = Start-Process $FlossbankExe -ArgumentList $InstallArgs -Wait -NoNewWindow -PassThru
+$wrapCall = Start-Process $FlossbankExe -ArgumentList $WrapArgs -Wait -NoNewWindow -PassThru
 if ($needInstallToken) {
-  & $FlossbankExe $AuthArgs
+  $authCall = Start-Process $FlossbankExe -ArgumentList $AuthArgs -Wait -NoNewWindow -PassThru
 }
 Write-Output ""
+
+if ($installCall.ExitCode -ne 0 -Or $wrapCall.ExitCode -ne 0 -Or $authCall.ExitCode -ne 0) {
+  Write-Output ""
+  Write-Output "Oh no :( we had trouble setting up Flossbank. Please try again or email support@flossbank.com for help!"
+  return
+}
 
 $envFile = Join-Path $FlossbankInstall "env.ps1"
 . $envFile
