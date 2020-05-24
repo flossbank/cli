@@ -2,6 +2,7 @@ const { promises: { writeFile } } = require('fs')
 const path = require('path')
 const makeDir = require('make-dir')
 const del = require('del')
+const os = require('os')
 
 /**
  * Env is responsible for writing the $FLOSSBANK_DIR/env and env.ps1 files
@@ -63,7 +64,8 @@ class Env {
   _getPowerPathModifier () {
     const installDir = this.config.getInstallDir()
     const binDir = path.join(installDir, 'bin')
-    return `$ENV:PATH="$ENV:PATH;${binDir}"`
+    const separator = os.platform() === 'win32' ? ';' : ':'
+    return `$ENV:PATH="$ENV:PATH${separator}${binDir}"`
   }
 }
 

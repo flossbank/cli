@@ -20,13 +20,38 @@
 
 $ErrorActionPreference = 'Stop'
 
-$Target = 'win-x86_64'
-
 $FlossbankInstall = $env:FLOSSBANK_INSTALL
-$BinDir = if ($FlossbankInstall) {
-  "$FlossbankInstall\bin"
+if (!$FlossbankInstall) {
+  $FlossbankInstall = Join-Path $Home ".flossbank"
+}
+
+if ($PSVersionTable.PSEdition -ne 'Core' -Or $IsWindows) {
+  # if not using PowerShell Core, we must be on Windows PowerShell
+  # if we are using PowerShell Core, $IsWindows should be exposed
+  $Target = 'win-x86_64'
+  $ExeName = 'flossbank.exe'
 } else {
-  "$Home\.flossbank\bin"
+  $ExeName = 'flossbank'
+  $Target = if ($IsMacOS) {
+    'macos-x86_64'
+  } else {
+    'linux-x86_64'
+  }
+}
+
+$BinDir = Join-Path $FlossbankInstall "bin"
+$FlossbankZip = Join-Path $BinDir "flossbank.zip"
+$FlossbankExe = Join-Path $BinDir $ExeName
+
+$FlossbankInstallToken = $env:FLOSSBANK_INSTALL_TOKEN
+if (!(Test-Path $FlossbankExe)) {
+  $needInstallToken = $True
+} else {
+  $check = Start-Process $FlossbankExe -ArgumentList "check" -Wait -NoNewWindow -PassThru
+  $needInstallToken = $check.ExitCode -ne 0
+}
+if ($needInstallToken -And !$FlossbankInstallToken) {
+  $FlossbankInstallToken = Read-Host -Prompt 'Please enter install token to continue: '
 }
 
 if (!(Test-Path $BinDir)) {
@@ -46,16 +71,14 @@ Write-Output ""
 Write-Output "This path will then be added to your PATH environment variable by"
 Write-Output "modifying your shell profile/s."
 Write-Output ""
-Write-Output "You can uninstall at any time by executing 'flossbank --uninstall'"
+Write-Output "You can uninstall at any time by executing 'flossbank uninstall'"
 Write-Output "and these changes will be reverted."
 Write-Output ""
 
 # GitHub requires TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $Response = Invoke-WebRequest 'https://github.com/flossbank/cli/releases/latest' -UseBasicParsing
-$FlossbankUri = {
-  $Response = Invoke-WebRequest 'https://github.com/flossbank/cli/releases/latest' -UseBasicParsing
-  if ($PSVersionTable.PSEdition -eq 'Core') {
+$FlossbankUri = if ($PSVersionTable.PSEdition -eq 'Core') {
     $Response.Links |
       Where-Object { $_.href -like "/flossbank/cli/releases/download/*/flossbank-${Target}.zip" } |
       ForEach-Object { 'https://github.com' + $_.href } |
@@ -73,18 +96,15 @@ $FlossbankUri = {
       ForEach-Object { $_.href -replace 'about:', 'https://github.com' } |
       Select-Object -First 1
   }
-}
 
 if (!$FlossbankUri) {
   Write-Output ""
   Write-Output "Error: unable to locate latest release on GitHub. Please try again or email support@flossbank.com for help!"
-  exit 1
+  return
 }
+
 $FlossbankVersion = $FlossbankUri.Split("/")[7]
 $FlossbankFileName = $FlossbankUri.Split("/")[8]
-
-$FlossbankZip = "$BinDir\flossbank.zip"
-$FlossbankExe = "$BinDir\flossbank.exe"
 
 Write-Output "Installing version: $FlossbankVersion"
 Write-Output "  - Downloading $FlossbankFileName..."
@@ -92,23 +112,30 @@ Write-Output "  - Downloading $FlossbankFileName..."
 Invoke-WebRequest $FlossbankUri -OutFile $FlossbankZip -UseBasicParsing
 Expand-Archive $FlossbankZip -Destination $BinDir -Force
 Remove-Item $FlossbankZip
+if ($IsMacOS -Or $IsLinux) {
+  chmod +x "$FlossbankExe"
+}
 
 Write-Output ""
 $InstallArgs = "install", "$FlossbankInstall"
 $WrapArgs = "wrap", "all"
+$AuthArgs = "auth", "$FlossbankInstallToken"
 
-& $FlossbankExe $InstallArgs
-& $FlossbankExe $WrapArgs
+$installCall = Start-Process $FlossbankExe -ArgumentList $InstallArgs -Wait -NoNewWindow -PassThru
+$wrapCall = Start-Process $FlossbankExe -ArgumentList $WrapArgs -Wait -NoNewWindow -PassThru
+if ($needInstallToken) {
+  $authCall = Start-Process $FlossbankExe -ArgumentList $AuthArgs -Wait -NoNewWindow -PassThru
+}
 Write-Output ""
 
-& $FlossbankExe 'check'
-if ($LASTEXITCODE -ne 0) {
-  Write-Output "The next step is to verify your email address."
+if ($installCall.ExitCode -ne 0 -Or $wrapCall.ExitCode -ne 0 -Or $authCall.ExitCode -ne 0) {
   Write-Output ""
-  & $FlossbankExe 'auth'
+  Write-Output "Oh no :( we had trouble setting up Flossbank. Please try again or email support@flossbank.com for help!"
+  return
 }
 
-. "$FlossbankInstall\env.ps1"
+$envFile = Join-Path $FlossbankInstall "env.ps1"
+. $envFile
 
 Write-Output ""
 Write-Output "Flossbank ($FlossbankVersion) is now installed and registered. Great!"

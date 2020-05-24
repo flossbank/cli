@@ -68,7 +68,7 @@ echo
 echo "This path will then be added to your PATH environment variable by"
 echo "modifying your shell profile/s."
 echo
-echo "You can uninstall at any time by executing 'flossbank --uninstall'"
+echo "You can uninstall at any time by executing 'flossbank uninstall'"
 echo "and these changes will be reverted."
 echo
 
