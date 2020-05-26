@@ -193,8 +193,8 @@ class Profile {
         child.on('exit', (code) => resolve(code === 0))
       })
     ]
-    const runResults = await Promise.all(runChecks)
-    return runResults.some(Boolean)
+    const runResults = await Promise.allSettled(runChecks) // Promise.any can't come soon enough
+    return runResults.some(({ status, value }) => status === 'fulfilled' && value)
   }
 
   async _fileExists (filePath) {

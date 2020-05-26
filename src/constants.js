@@ -1,6 +1,7 @@
 module.exports = {
   AD_INTERVAL: 5000,
   DEFAULT_API_HOST: 'https://api.flossbank.com',
+  DEFAULT_INSTALL_HOST: 'https://install.flossbank.com',
   SOURCE_VARIANT_SHELL: 'shell',
   SOURCE_VARIANT_POWER: 'power',
   DEFAULT_ALIASES: { shell: {}, power: {} },
@@ -8,6 +9,7 @@ module.exports = {
   PROJECT_NAME: 'flossbank',
   CONFIG_API_KEY: 'apiKey',
   CONFIG_API_HOST: 'apiHost',
+  CONFIG_INSTALL_HOST: 'installHost',
   CONFIG_ALIASES: 'aliases',
   CONFIG_LAST_RUNLOG: 'lastRunlog',
   CONFIG_INSTALL_DIR: 'installDir',

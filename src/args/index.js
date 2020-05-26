@@ -6,6 +6,7 @@ const install = require('./install')
 const uninstall = require('./uninstall')
 const wrap = require('./wrap')
 const unwrap = require('./unwrap')
+const update = require('./update')
 const runlog = require('./runlog')
 
 const supportedArgs = new Map([
@@ -22,12 +23,13 @@ const supportedArgs = new Map([
   ['uninstall', uninstall],
   ['wrap', wrap],
   ['unwrap', unwrap],
+  ['update', update],
   ['runlog', runlog]
 ])
 
 class Args {
-  constructor ({ config, client, ui, alias, profile, env, runlog }) {
-    this.deps = { config, client, ui, alias, profile, env, runlog }
+  constructor ({ config, update, client, ui, alias, profile, env, runlog }) {
+    this.deps = { config, update, client, ui, alias, profile, env, runlog }
     this._haveArgs = false
     const firstArg = process.argv[2]
 
