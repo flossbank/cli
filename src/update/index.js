@@ -17,12 +17,14 @@ class UpdateController {
     this.config = config
     this.runlog = runlog
 
-    const installDir = this.config.getInstallDir()
-    this.binDir = path.join(installDir, 'bin')
-
     this.shouldUpdate = false
     this.latestVersion = ''
     this.latestReleaseUrl = ''
+  }
+
+  getBinDir () {
+    const installDir = this.config.getInstallDir()
+    return path.join(installDir, 'bin')
   }
 
   getTarget () {
@@ -63,7 +65,7 @@ class UpdateController {
       got.stream(latestReleaseUrl),
       fs.createWriteStream(zip)
     )
-    await decompress(zip, this.binDir, { plugins: [decompressUnzip()] })
+    await decompress(zip, this.getBinDir(), { plugins: [decompressUnzip()] })
   }
 }
 
