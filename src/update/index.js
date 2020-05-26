@@ -67,7 +67,7 @@ class UpdateController {
       got.stream(latestReleaseUrl),
       fs.createWriteStream(zip)
     )
-    if (os.platform === 'win32') {
+    if (os.platform() === 'win32') {
       // for windows, we will extract the new `flossbank` binary to a temp dir
       // and then spawn a small script that waits for this instance of `flossbank`
       // to exit, replaces with the new version, and then deletes itself
@@ -81,12 +81,11 @@ class UpdateController {
 
   async windowsUpdate ({ newVersionDir }) {
     const scriptContents = [ // yes it's hacky
-      '@echo off', // don't print commands as they run
       ':Repeat', // label which allows for `goto` directives
       'del %1', // delete the file specified in 1st arg
       'if exist %1 goto Repeat', // if the file wasn't deleted, try again
       'move %2 %1', // now that we know 1st arg is gone, move 2nd arg into 1st args path
-      'rem del %0' // delete self
+      'del %0' // delete self
     ]
     const scriptFile = tempy.file()
     await fs.promises.writeFile(scriptFile, scriptContents.join(os.EOL))
@@ -96,7 +95,8 @@ class UpdateController {
 
     spawn(scriptFile, [oldBinary, newBinary], {
       detached: true,
-      stdio: 'ignore'
+      stdio: 'ignore',
+      shell: true
     }).unref()
   }
 }
