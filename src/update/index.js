@@ -3,6 +3,7 @@ const path = require('path')
 const stream = require('stream')
 const util = require('util')
 const fs = require('fs')
+const { spawn } = require('child_process')
 const tempy = require('tempy')
 const decompress = require('decompress')
 const decompressUnzip = require('decompress-unzip')
@@ -61,11 +62,42 @@ class UpdateController {
     const { latestReleaseUrl } = this
 
     const zip = tempy.file()
+    const tempDir = tempy.directory()
     await pipeline(
       got.stream(latestReleaseUrl),
       fs.createWriteStream(zip)
     )
-    await decompress(zip, this.getBinDir(), { plugins: [decompressUnzip()] })
+    if (os.platform === 'win32') {
+      // for windows, we will extract the new `flossbank` binary to a temp dir
+      // and then spawn a small script that waits for this instance of `flossbank`
+      // to exit, replaces with the new version, and then deletes itself
+      await decompress(zip, tempDir, { plugins: [decompressUnzip()] })
+
+      return this.windowsUpdate({ newVersionDir: tempDir })
+    }
+    // non-windows OS is fine with replacing the running file
+    return decompress(zip, this.getBinDir(), { plugins: [decompressUnzip()] })
+  }
+
+  async windowsUpdate ({ newVersionDir }) {
+    const scriptContents = [ // yes it's hacky
+      '@echo off', // don't print commands as they run
+      ':Repeat', // label which allows for `goto` directives
+      'del %1', // delete the file specified in 1st arg
+      'if exist %1 goto Repeat', // if the file wasn't deleted, try again
+      'move %2 %1', // now that we know 1st arg is gone, move 2nd arg into 1st args path
+      'rem del %0' // delete self
+    ]
+    const scriptFile = tempy.file()
+    await fs.promises.writeFile(scriptFile, scriptContents.join(os.EOL))
+
+    const newBinary = path.join(newVersionDir, 'flossbank.exe')
+    const oldBinary = path.join(this.getBinDir(), 'flossbank.exe')
+
+    spawn(scriptFile, [oldBinary, newBinary], {
+      detached: true,
+      stdio: 'ignore'
+    }).unref()
   }
 }
 
