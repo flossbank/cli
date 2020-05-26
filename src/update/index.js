@@ -82,12 +82,12 @@ class UpdateController {
   async windowsUpdate ({ newVersionDir }) {
     const scriptContents = [ // yes it's hacky
       ':Repeat', // label which allows for `goto` directives
-      'del %1', // delete the file specified in 1st arg
-      'if exist %1 goto Repeat', // if the file wasn't deleted, try again
-      'move %2 %1', // now that we know 1st arg is gone, move 2nd arg into 1st args path
-      'del %0' // delete self
+      'del "%1"', // delete the file specified in 1st arg
+      'if exist "%1" goto Repeat', // if the file wasn't deleted, try again
+      'move "%2" "%1"', // now that we know 1st arg is gone, move 2nd arg into 1st args path
+      'del "%0"' // delete self
     ]
-    const scriptFile = tempy.file()
+    const scriptFile = tempy.file({ extension: 'bat' })
     await fs.promises.writeFile(scriptFile, scriptContents.join(os.EOL))
 
     const newBinary = path.join(newVersionDir, 'flossbank.exe')
