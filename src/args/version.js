@@ -1,4 +1,4 @@
 module.exports = ({ ui }) => {
-  ui.showVersion()
+  ui.printVersion()
   return 0
 }

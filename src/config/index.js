@@ -3,7 +3,9 @@ const path = require('path')
 const {
   PROJECT_NAME,
   DEFAULT_API_HOST,
+  DEFAULT_INSTALL_HOST,
   CONFIG_API_KEY,
+  CONFIG_INSTALL_HOST,
   CONFIG_API_HOST,
   CONFIG_ALIASES,
   CONFIG_LAST_RUNLOG,
@@ -14,6 +16,10 @@ const {
 class Config {
   constructor () {
     this.conf = new Conf({ projectName: PROJECT_NAME })
+  }
+
+  getInstallHost () {
+    return this.conf.get(CONFIG_INSTALL_HOST, DEFAULT_INSTALL_HOST)
   }
 
   getApiHost () {

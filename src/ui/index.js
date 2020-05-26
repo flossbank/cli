@@ -172,6 +172,13 @@ class Ui {
   error (msg) {
     console.log(color.red(msg))
   }
+
+  dots (ms) {
+    const int = setInterval(() => this.stdout.write('.'), ms)
+    return () => {
+      clearInterval(int)
+    }
+  }
 }
 
 module.exports = Ui

@@ -9,6 +9,7 @@ const Env = require('./env')
 const Alias = require('./alias')
 const Profile = require('./profile')
 const TempWriter = require('./util/temp')
+const UpdateController = require('./update')
 const Runlog = require('./util/runlog')
 
 const app = require('./app')
@@ -25,6 +26,7 @@ function main () {
   const runlog = new Runlog({ config, debug, tempWriter })
 
   const client = new Client({ config, runlog })
+  const update = new UpdateController({ tempWriter, config, runlog })
 
   const pm = new Pm({ runlog })
 
@@ -33,9 +35,9 @@ function main () {
   const profile = new Profile({ env, runlog })
 
   const ui = new Ui({ config, runlog, client, stdout: process.stdout })
-  const args = new Args({ client, ui, config, alias, env, profile, runlog })
+  const args = new Args({ client, update, ui, config, alias, env, profile, runlog })
 
-  app({ config, runlog, client, pm, ui, args })
+  app({ config, update, runlog, client, pm, ui, args })
 }
 
 main()
