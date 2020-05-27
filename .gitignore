@@ -9,3 +9,4 @@ TEST_RESULTS.xml
 coverage/
 flossbank
 *.zip
+.pkg-cache

@@ -8,6 +8,7 @@ const rm = promisify(rimraf)
 const exec = promisify(execFile)
 
 module.exports = {
+  sleep: (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms)),
   fs: { ls, rm, readFile },
   exec,
   constants: {

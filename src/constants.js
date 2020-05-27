@@ -7,12 +7,6 @@ module.exports = {
   DEFAULT_ALIASES: { shell: {}, power: {} },
   DEFAULT_CONFIG: {},
   PROJECT_NAME: 'flossbank',
-  CONFIG_API_KEY: 'apiKey',
-  CONFIG_API_HOST: 'apiHost',
-  CONFIG_INSTALL_HOST: 'installHost',
-  CONFIG_ALIASES: 'aliases',
-  CONFIG_LAST_RUNLOG: 'lastRunlog',
-  CONFIG_INSTALL_DIR: 'installDir',
   SHEBANG: '#!/usr/bin/env bash',
   USAGE: `
   Usage:

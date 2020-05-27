@@ -1,5 +1,6 @@
 const readline = require('readline')
 const color = require('kleur')
+const boxen = require('boxen')
 const Diffy = require('diffy')
 const format = require('./format')
 const summary = require('./summary')
@@ -151,6 +152,21 @@ class Ui {
 
   sayGoodbye () {
     console.log(color.white().bold('\nThanks for supporting the Open Source community with Flossbank ♥'))
+
+    if (this.config.getUpdateAvailable()) {
+      console.log(this.updateBox())
+    }
+  }
+
+  updateBox () {
+    const cmd = color.cyan('flossbank update')
+    return boxen(`A new version of Flossbank is available! \nRun ${cmd} to update`, {
+      padding: 1,
+      margin: 1,
+      align: 'center',
+      borderColor: 'yellow',
+      borderStyle: 'round'
+    })
   }
 
   printHelp () {
