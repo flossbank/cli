@@ -11,11 +11,7 @@ const update = new Update({ config, tempWriter, runlog })
 async function check () {
   try {
     await update.check()
-    return 0
-  } catch (e) {
-    console.error(e)
-    return 1
-  }
+  } catch (_) {} // this file runs completely invisibly, so swallowing all errors
 }
 
 check()

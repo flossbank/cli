@@ -77,8 +77,7 @@ class UpdateController {
 
   async update () {
     if (!this.shouldUpdate) {
-      await this.check()
-      if (!this.shouldUpdate) return
+      if (!await this.check()) return
     }
     const { latestReleaseUrl } = this
 
