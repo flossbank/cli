@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"prepublishOnly": "npm run test:unit",
-		"build": "PKG_CACHE_PATH=.pkg-cache pkg --public -t node12 -o flossbank package.json",
+		"build": "cross-env PKG_CACHE_PATH=.pkg-cache pkg --public -t node12 -o flossbank package.json",
 		"test": "standard && npm run test:unit",
 		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
 		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
