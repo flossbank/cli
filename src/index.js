@@ -27,6 +27,7 @@ function main () {
 
   const client = new Client({ config, runlog })
   const update = new UpdateController({ tempWriter, config, runlog })
+  update.deferCheck()
 
   const pm = new Pm({ runlog })
 
@@ -37,7 +38,7 @@ function main () {
   const ui = new Ui({ config, runlog, client, stdout: process.stdout })
   const args = new Args({ client, update, ui, config, alias, env, profile, runlog })
 
-  app({ config, update, runlog, client, pm, ui, args })
+  app({ config, runlog, client, pm, ui, args })
 }
 
 main()

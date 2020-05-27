@@ -18,9 +18,30 @@ class UpdateController {
     this.config = config
     this.runlog = runlog
 
-    this.shouldUpdate = false
+    this.shouldUpdate = this.config.getUpdateAvailable() || false
     this.latestVersion = ''
     this.latestReleaseUrl = ''
+    this.updateCheckInterval = 1000 * 60 * 60 * 24 // one day in ms
+  }
+
+  deferCheck () {
+    // skip spawn if we've checked recently
+    if (Date.now() - this.config.getLastUpdateCheck() < this.updateCheckInterval) {
+      return
+    }
+    spawn(process.execPath, [require.resolve('./check')], {
+      detached: true,
+      stdio: 'ignore',
+      shell: true
+    }).unref()
+  }
+
+  async check () {
+    const { shouldUpdate } = await this.getLatestVersion()
+    this.config.setLastUpdateCheck(Date.now())
+    this.config.setUpdateAvailable(shouldUpdate)
+
+    return shouldUpdate
   }
 
   getBinDir () {
@@ -56,8 +77,8 @@ class UpdateController {
 
   async update () {
     if (!this.shouldUpdate) {
-      const { shouldUpdate } = await this.getLatestVersion()
-      if (!shouldUpdate) return
+      await this.check()
+      if (!this.shouldUpdate) return
     }
     const { latestReleaseUrl } = this
 
@@ -73,10 +94,13 @@ class UpdateController {
       // to exit, replaces with the new version, and then deletes itself
       await decompress(zip, tempDir, { plugins: [decompressUnzip()] })
 
-      return this.windowsUpdate({ newVersionDir: tempDir })
+      await this.windowsUpdate({ newVersionDir: tempDir })
+    } else {
+      // non-windows OS is fine with replacing the running file
+      await decompress(zip, this.getBinDir(), { plugins: [decompressUnzip()] })
     }
-    // non-windows OS is fine with replacing the running file
-    return decompress(zip, this.getBinDir(), { plugins: [decompressUnzip()] })
+
+    this.config.setUpdateAvailable(false)
   }
 
   async windowsUpdate ({ newVersionDir }) {
