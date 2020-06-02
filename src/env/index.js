@@ -65,7 +65,7 @@ class Env {
     const installDir = this.config.getInstallDir()
     const binDir = path.join(installDir, 'bin')
     const separator = os.platform() === 'win32' ? ';' : ':'
-    return `$ENV:PATH="$ENV:PATH${separator}${binDir}"`
+    return `$ENV:PATH="${binDir}${separator}$ENV:PATH"`
   }
 }
 
