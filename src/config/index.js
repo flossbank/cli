@@ -9,7 +9,10 @@ const {
 
 class Config {
   constructor () {
-    this.conf = new Conf({ projectName: PROJECT_NAME })
+    this.conf = new Conf({
+      projectName: PROJECT_NAME,
+      projectSuffix: ''
+    })
   }
 
   getInstallHost () {
