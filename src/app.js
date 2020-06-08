@@ -71,7 +71,10 @@ module.exports = async ({ runlog, client, pm, ui, args }) => {
     runlog.error('failed to get session data: %O', e)
   }
 
-  if (initialAdBatchSize < 1 || pm.isQuietMode()) {
+  // if not in a TTY, we won't display ads (unless we're debugging, which is what runlog.enabled means)
+  const inATerminalOrDebugging = process.stdout.isTTY || runlog.enabled
+
+  if (initialAdBatchSize < 1 || pm.isQuietMode() || !inATerminalOrDebugging) {
     // we will not start the UI, but we will "complete" this is no-ads session
     runlog.record(runlog.keys.SILENT_MODE, true)
     return pm.passthrough(async (err, code) => {
