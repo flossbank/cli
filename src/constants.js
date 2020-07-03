@@ -17,6 +17,7 @@ module.exports = {
     auth <token>    Authenticates with Flossbank API
     wrap [pm]       Wraps specified package manager
     unwrap [pm]     Unwraps specified package manager
+    uninstall       Unwraps all package managers and removes shell integration
     help            Shows this help output
 
   Examples:
