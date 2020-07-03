@@ -54,5 +54,5 @@ jobs:
 trigger:
   branches:
     include:
-      - master
+      - production
       - refs/tags/*
