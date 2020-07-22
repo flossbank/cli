@@ -44,9 +44,9 @@ class ApiClient {
     return this.seen.slice()
   }
 
-  async startSession (existingSessionId) {
+  async startSession () {
     const { ads, sessionId } = await this.got.post(this.routes.SESSION_START, {
-      json: { sessionId: existingSessionId }
+      json: { sessionId: this.sessionId }
     })
     // preserve session id in case we call the API again during this session
     this.sessionId = sessionId
