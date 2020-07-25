@@ -41,12 +41,12 @@ module.exports = async ({ runlog, client, pm, ui, args }) => {
 
   if (!pm.isSupportedVerb()) {
     runlog.record(runlog.keys.PASSTHROUGH_MODE, true)
-    return pm.passthrough(() => exit(runlog, 'unsupported verb'))
+    return pm.passthrough((err, code) => exit(runlog, err ? err.toString() : 'unsupported verb', code))
   }
 
   if (!client.haveApiKey()) {
     runlog.record(runlog.keys.PASSTHROUGH_MODE, true)
-    return pm.passthrough(() => exit(runlog, 'no api key'))
+    return pm.passthrough((err, code) => exit(runlog, err ? err.toString() : 'no api key', code))
   }
 
   let initialAdBatchSize = 0
@@ -55,7 +55,7 @@ module.exports = async ({ runlog, client, pm, ui, args }) => {
   } catch (e) {
     runlog.error('failed to start session: %O', e)
     runlog.record(runlog.keys.PASSTHROUGH_MODE, true)
-    return pm.passthrough(() => exit(runlog, 'failed to start session'))
+    return pm.passthrough((err, code) => exit(runlog, err ? err.toString() : 'failed to start session', code))
   }
 
   let sessionData

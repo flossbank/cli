@@ -13,10 +13,10 @@
 		"prepublishOnly": "npm run test:unit",
 		"build": "cross-env PKG_CACHE_PATH=.pkg-cache pkg --public -t node12 -o flossbank package.json",
 		"test": "standard --fix && npm run test:unit",
-		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\"",
-		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\"",
-		"test:integ": "cd ci/tests && ava -v --timeout=1m --serial --match=\"*integ*\" && cd ../../",
-		"test:integ:tap": "cd ci/tests && ava -vt --timeout=1m --serial --match=\"*integ*\" && cd ../../",
+		"test:unit": "ava -v --timeout=15s --match=\"!*integ*\" test/**/*.js",
+		"test:unit:tap": "ava -vt --timeout=15s --match=\"!*integ*\" test/**/*.js",
+		"test:integ": "cd ci/tests && ava -v --timeout=1m --serial --match=\"*integ*\" *.test.js && cd ../../",
+		"test:integ:tap": "cd ci/tests && ava -vt --timeout=1m --serial --match=\"*integ*\" *.test.js && cd ../../",
 		"test:tap": "multi-tap -r test:unit:tap -r test:integ:tap | tap-xunit",
 		"coverage": "cross-env FLOSSBANK_TEST_SOURCE=1 DEBUG=flossbank nyc --reporter=cobertura npm run --silent test:tap > TEST_RESULTS.xml"
 	},
@@ -26,6 +26,11 @@
 			"ci/tests/**/*.js",
 			"webpack.config.js"
 		]
+	},
+	"standard": {
+	  "ignore": [
+	    "ci/tests/test/*"
+	  ]
 	},
 	"dependencies": {
 		"agentkeepalive": "^4.1.2",

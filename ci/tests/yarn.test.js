@@ -12,6 +12,26 @@ test.afterEach('delete installed node modules', async (t) => {
   t.log('node modules empty:', nodeUtils.getNodeModules())
 })
 
+test.afterEach('delete success artifacts', async () => {
+  await nodeUtils.deleteSuccessArtifacts()
+})
+
+test.serial('integ: yarn: pass quoted arg to passthrough command', async (t) => {
+  await flossbank.config.setIntegApiKey()
+
+  // first install deps (mocha)
+  await flossbank.run(['yarn'])
+
+  const runlog = await flossbank.run(['yarn', 'test', '--grep', '"Tooltip /"'])
+
+  t.is(runlog.supportedPm, true)
+  t.is(runlog.passthrough, true)
+
+  const quotedArgArtifact = nodeUtils.getQuotedArgArtifact()
+  t.log({ quotedArgArtifact })
+  t.truthy(quotedArgArtifact)
+})
+
 test.serial('integ: yarn: using package.json run pm with ads', async (t) => {
   await flossbank.config.setIntegApiKey()
   const runlog = await flossbank.run(['yarn'])

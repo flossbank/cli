@@ -56,13 +56,15 @@ class Pm {
     if (this._isDefined('passthrough')) {
       return this.pm.passthrough(cb)
     }
-    const child = spawn(this.packageManager, this.packageManagerArgs, {
+    // wrap passthrough args in quotes in case the child PM is also passing through
+    const args = [joinArgs(this.packageManagerArgs)]
+    const child = spawn(this.packageManager, args, {
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, FORCE_COLOR: process.env.FORCE_COLOR || 1 }
     })
-    child.on('error', (err) => cb(err))
-    child.on('exit', (code) => cb(null, { exit: true, code }))
+    child.on('error', (err) => cb(err, 1))
+    child.on('exit', (code) => cb(null, code))
   }
 
   start (cb = () => {}) {
@@ -134,6 +136,14 @@ class Pm {
   _isDefined (fn) {
     return this.pm && typeof this.pm[fn] === 'function'
   }
+}
+
+function joinArgs (args) {
+  let joinedArgs = ''
+  args.forEach((arg) => {
+    joinedArgs += ' "' + arg.replace(/"/g, '\\"') + '"'
+  })
+  return joinedArgs
 }
 
 module.exports = Pm

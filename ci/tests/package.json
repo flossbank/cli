@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "mocha": "*"
+  },
   "dependencies": {
     "core-js": "^3.6.4",
     "fshash": "0.0.15",
