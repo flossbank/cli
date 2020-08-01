@@ -1,6 +1,6 @@
 {
 	"name": "@flossbank/cli",
-	"version": "0.0.35",
+	"version": "0.0.34",
 	"license": "GPL-3.0-or-later",
 	"bin": {
 		"flossbank": "src/index.js"
