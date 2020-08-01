@@ -13,7 +13,7 @@ module.exports = async ({ ui, runlog, update }) => {
   } catch (e) {
     ui.stdout.write('failed!\n')
     runlog.error('failed to check for updates', e)
-    ui.error('Unable to check for updates. Try manually updating by following the instructions at https://flossbank.com/update')
+    ui.error('Unable to check for updates. Try running `DEBUG=FLOSSBANK flossbank update` to attempt debugging, or manually re-install at https://flossbank.com/install')
     return 1
   }
 
@@ -28,7 +28,7 @@ module.exports = async ({ ui, runlog, update }) => {
   } catch (e) {
     ui.stdout.write('failed!\n')
     runlog.error('failed to update', e)
-    ui.error('Unable to update. Try manually updating by following the instructions at https://flossbank.com/update')
+    ui.error('Unable to update. Try running `DEBUG=FLOSSBANK flossbank update` to attempt debugging, or manually re-install at https://flossbank.com/install')
     return 1
   }
 }
