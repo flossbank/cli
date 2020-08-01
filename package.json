@@ -29,8 +29,8 @@
 	},
 	"standard": {
 		"ignore": [
-			"ci/tests/test/*"
-		]
+	    "ci/tests/test/*"
+	  ]
 	},
 	"dependencies": {
 		"agentkeepalive": "^4.1.2",
