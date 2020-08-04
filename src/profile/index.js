@@ -23,6 +23,8 @@ class Profile {
   constructor ({ env, runlog }) {
     this.env = env
     this.runlog = runlog
+    // shells and an appropriate config file to add our source line to
+    // ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
     this.SUPPORTED_SHELLS = {
       shellFormat: {
         // only support shells that support functions
@@ -48,9 +50,6 @@ class Profile {
   inConfig (...filepaths) {
     return this.inHome('.config', ...filepaths)
   }
-
-  // shells and an appropriate config file to add our source line to
-  // ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
 
   async installToProfiles () {
     return this._updateProfiles({ install: true })

@@ -15,7 +15,7 @@ test.beforeEach((t) => {
     record: sinon.stub(),
     keys: {}
   }
-  sinon.stub(os, 'homedir').returns('/Users/tester')
+  sinon.stub(os, 'homedir').returns('')
   t.context.profile = new Profile({ config, runlog })
 })
 
@@ -28,15 +28,15 @@ test('writes to all shell and power profiles for system with all shells and powe
     detectedPowerFormatProfiles
   } = await profile._detectProfiles()
   t.deepEqual(detectedShellFormatProfiles, [
-    '/Users/tester/.profile',
-    '/Users/tester/.kshrc',
-    '/Users/tester/.zshrc',
-    '/Users/tester/.zprofile',
-    '/Users/tester/.bashrc',
-    '/Users/tester/.bash_profile'
+    '.profile',
+    '.kshrc',
+    '.zshrc',
+    '.zprofile',
+    '.bashrc',
+    '.bash_profile'
   ])
   t.deepEqual(detectedPowerFormatProfiles, [
-    '/Users/tester/.config/powershell/Microsoft.PowerShell_profile.ps1',
-    '/Users/tester/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1'
+    '.config/powershell/Microsoft.PowerShell_profile.ps1',
+    'Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1'
   ])
 })
