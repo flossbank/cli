@@ -1,7 +1,6 @@
 
 const test = require('ava')
 const sinon = require('sinon')
-const os = require('os')
 const Profile = require('../../src/profile')
 
 test.beforeEach((t) => {
@@ -15,7 +14,8 @@ test.beforeEach((t) => {
     record: sinon.stub(),
     keys: {}
   }
-  sinon.stub(os, 'homedir').returns('')
+  Profile.prototype.inHome = (...args) => args.pop()
+  Profile.prototype.inConfig = (...args) => args.pop()
   t.context.profile = new Profile({ config, runlog })
 })
 
@@ -27,16 +27,15 @@ test('writes to all shell and power profiles for system with all shells and powe
     detectedShellFormatProfiles,
     detectedPowerFormatProfiles
   } = await profile._detectProfiles()
-  t.deepEqual(detectedShellFormatProfiles, [
+  t.deepEqual([
     '.profile',
     '.kshrc',
     '.zshrc',
     '.zprofile',
     '.bashrc',
     '.bash_profile'
-  ])
-  t.deepEqual(detectedPowerFormatProfiles, [
-    '.config/powershell/Microsoft.PowerShell_profile.ps1',
-    'Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1'
-  ])
+  ], detectedShellFormatProfiles)
+  t.deepEqual([
+    'Microsoft.PowerShell_profile.ps1'
+  ], detectedPowerFormatProfiles)
 })
