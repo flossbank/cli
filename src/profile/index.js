@@ -120,10 +120,10 @@ class Profile {
     })
 
     ;(await Promise.all(shellFormat)).filter(res => res.runnable).forEach(sh => {
-      detectedShellFormatProfiles.add(...sh.profiles)
+      sh.profiles.forEach(profile => detectedShellFormatProfiles.add(profile))
     })
     ;(await Promise.all(powerFormat)).filter(res => res.runnable).forEach(sh => {
-      detectedPowerFormatProfiles.add(...sh.profiles)
+      sh.profiles.forEach(profile => detectedPowerFormatProfiles.add(profile))
     })
 
     return {
