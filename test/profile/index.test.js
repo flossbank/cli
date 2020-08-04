@@ -14,9 +14,11 @@ test.beforeEach((t) => {
     record: sinon.stub(),
     keys: {}
   }
-  Profile.prototype.inHome = (...args) => args.pop()
-  Profile.prototype.inConfig = (...args) => args.pop()
-  t.context.profile = new Profile({ config, runlog })
+  const pathChecks = {
+    inHome: (...args) => args.pop(),
+    inConfig: (...args) => args.pop()
+  }
+  t.context.profile = new Profile({ config, runlog, pathChecks })
 })
 
 test('writes to all shell and power profiles for system with all shells and power available', async (t) => {

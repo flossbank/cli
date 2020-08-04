@@ -20,8 +20,9 @@ const makeDir = require('make-dir')
  *  respective profiles updated with the source command.
  */
 class Profile {
-  constructor ({ env, runlog }) {
+  constructor ({ env, runlog, pathChecks }) {
     this.env = env
+    this.pathChecks = pathChecks
     this.runlog = runlog
     // shells and an appropriate config file to add our source line to
     // ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
@@ -29,26 +30,26 @@ class Profile {
       shellFormat: {
         // only support shells that support functions
         // ref: https://web.archive.org/web/20160403120601/http://www.unixnote.com/2010/05/different-unix-shell.html
-        sh: [this.inHome('.profile')],
-        ksh: [this.inHome('.kshrc')],
-        zsh: [this.inHome('.zshrc'), this.inHome('.profile'), this.inHome('.zprofile')],
-        bash: [this.inHome('.bashrc'), this.inHome('.profile'), this.inHome('.bash_profile')]
+        sh: [this.pathChecks.inHome('.profile')],
+        ksh: [this.pathChecks.inHome('.kshrc')],
+        zsh: [
+          this.pathChecks.inHome('.zshrc'),
+          this.pathChecks.inHome('.profile'),
+          this.pathChecks.inHome('.zprofile')
+        ],
+        bash: [
+          this.pathChecks.inHome('.bashrc'),
+          this.pathChecks.inHome('.profile'),
+          this.pathChecks.inHome('.bash_profile')
+        ]
       },
       powerFormat: {
         pwsh: os.platform() !== 'win32' // pwsh stores its profile in different places depending on the OS
-          ? [this.inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
-          : [this.inHome('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')],
-        'powershell.exe': [this.inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
+          ? [this.pathChecks.inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
+          : [this.pathChecks.inHome('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')],
+        'powershell.exe': [this.pathChecks.inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
       }
     }
-  }
-
-  inHome (...filepaths) {
-    return path.join(os.homedir(), ...filepaths)
-  }
-
-  inConfig (...filepaths) {
-    return this.inHome('.config', ...filepaths)
   }
 
   async installToProfiles () {
