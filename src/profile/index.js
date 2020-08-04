@@ -13,33 +13,6 @@ const os = require('os')
 const path = require('path')
 const makeDir = require('make-dir')
 
-function inHome (...filepaths) {
-  return path.join(os.homedir(), ...filepaths)
-}
-
-function inConfig (...filepaths) {
-  return inHome('.config', ...filepaths)
-}
-
-// shells and an appropriate config file to add our source line to
-// ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
-const SUPPORTED_SHELLS = {
-  shellFormat: {
-    // only support shells that support functions
-    // ref: https://web.archive.org/web/20160403120601/http://www.unixnote.com/2010/05/different-unix-shell.html
-    sh: [inHome('.profile')],
-    ksh: [inHome('.kshrc')],
-    zsh: [inHome('.zshrc'), inHome('.profile'), inHome('.zprofile')],
-    bash: [inHome('.bashrc'), inHome('.profile'), inHome('.bash_profile')]
-  },
-  powerFormat: {
-    pwsh: os.platform() !== 'win32' // pwsh stores its profile in different places depending on the OS
-      ? [inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
-      : [inHome('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')],
-    'powershell.exe': [inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
-  }
-}
-
 /**
  * Profile is responsible for detecting appropriate shell profile files and appending/removing the
  *  source command to/from those shell profiles. Profile attempts to run many different shell variants
@@ -50,7 +23,34 @@ class Profile {
   constructor ({ env, runlog }) {
     this.env = env
     this.runlog = runlog
+    this.SUPPORTED_SHELLS = {
+      shellFormat: {
+        // only support shells that support functions
+        // ref: https://web.archive.org/web/20160403120601/http://www.unixnote.com/2010/05/different-unix-shell.html
+        sh: [this.inHome('.profile')],
+        ksh: [this.inHome('.kshrc')],
+        zsh: [this.inHome('.zshrc'), this.inHome('.profile'), this.inHome('.zprofile')],
+        bash: [this.inHome('.bashrc'), this.inHome('.profile'), this.inHome('.bash_profile')]
+      },
+      powerFormat: {
+        pwsh: os.platform() !== 'win32' // pwsh stores its profile in different places depending on the OS
+          ? [this.inConfig('powershell', 'Microsoft.PowerShell_profile.ps1')]
+          : [this.inHome('Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')],
+        'powershell.exe': [this.inHome('Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1')]
+      }
+    }
   }
+
+  inHome (...filepaths) {
+    return path.join(os.homedir(), ...filepaths)
+  }
+
+  inConfig (...filepaths) {
+    return this.inHome('.config', ...filepaths)
+  }
+
+  // shells and an appropriate config file to add our source line to
+  // ref: https://en.wikipedia.org/wiki/Unix_shell#Configuration_files
 
   async installToProfiles () {
     return this._updateProfiles({ install: true })
@@ -102,20 +102,20 @@ class Profile {
     const detectedShellFormatProfiles = new Set()
     const detectedPowerFormatProfiles = new Set()
 
-    const shellFormat = Object.keys(SUPPORTED_SHELLS.shellFormat).map(async shell => {
+    const shellFormat = Object.keys(this.SUPPORTED_SHELLS.shellFormat).map(async shell => {
       const runnable = await this._isRunnable(shell)
       return ({
         shell,
         runnable,
-        profiles: SUPPORTED_SHELLS.shellFormat[shell]
+        profiles: this.SUPPORTED_SHELLS.shellFormat[shell]
       })
     })
-    const powerFormat = Object.keys(SUPPORTED_SHELLS.powerFormat).map(async shell => {
+    const powerFormat = Object.keys(this.SUPPORTED_SHELLS.powerFormat).map(async shell => {
       const runnable = await this._isRunnable(shell)
       return ({
         shell,
         runnable,
-        profiles: SUPPORTED_SHELLS.powerFormat[shell]
+        profiles: this.SUPPORTED_SHELLS.powerFormat[shell]
       })
     })
 
