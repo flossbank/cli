@@ -11,6 +11,7 @@ const Profile = require('./profile')
 const TempWriter = require('./util/temp')
 const UpdateController = require('./update')
 const Runlog = require('./util/runlog')
+const PathChecks = require('./util/pathChecks')
 
 const app = require('./app')
 
@@ -33,7 +34,8 @@ function main () {
 
   const alias = new Alias({ config, pm })
   const env = new Env({ config, alias })
-  const profile = new Profile({ env, runlog })
+  const pathChecks = new PathChecks()
+  const profile = new Profile({ env, runlog, pathChecks })
 
   const ui = new Ui({ config, runlog, client, stdout: process.stdout })
   const args = new Args({ client, update, ui, config, alias, env, profile, runlog })
